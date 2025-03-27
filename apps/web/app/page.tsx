@@ -1,5 +1,5 @@
 import { Button } from "@workspace/ui/components/button"
-import { apiContract } from "@fluentify/contracts"
+import { apiContract } from "@workspace/contracts"
 
 export default function Page() {
   return (

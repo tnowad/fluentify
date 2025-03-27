@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { apiContract } from '@fluentify/contracts';
+import { apiContract } from '@workspace/contracts';
 import { Logger } from '@nestjs/common';
 
 async function bootstrap() {

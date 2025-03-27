@@ -26,9 +26,6 @@ importers:
 
   apps/api:
     dependencies:
-      '@fluentify/contracts':
-        specifier: workspace:*
-        version: link:../../packages/contracts
       '@nestjs/common':
         specifier: ^11.0.1
         version: 11.0.13(reflect-metadata@0.2.2)(rxjs@7.8.1)
@@ -38,6 +35,9 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.0.1
         version: 11.0.13(@nestjs/common@11.0.13(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.13)
+      '@workspace/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -123,7 +123,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@fluentify/contracts':
+      '@workspace/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
       '@workspace/ui':
