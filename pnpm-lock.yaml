@@ -123,6 +123,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@ts-rest/core':
+        specifier: ^3.52.1
+        version: 3.52.1(@types/node@20.17.19)(zod@3.24.2)
       '@workspace/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
@@ -144,6 +147,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.0.0(react@19.0.0)
+      recharts:
+        specifier: ^2.15.2
+        version: 2.15.2(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
     devDependencies:
       '@types/node':
         specifier: ^20
@@ -167,7 +173,7 @@ importers:
   packages/contracts:
     dependencies:
       '@ts-rest/core':
-        specifier: ^3.51.0
+        specifier: ^3.52.1
         version: 3.52.1(@types/node@22.14.0)(zod@3.24.2)
       zod:
         specifier: ^3.24.1
@@ -178,6 +184,10 @@ importers:
         version: 8.4.0(@swc/core@1.11.18(@swc/helpers@0.5.15))(jiti@2.4.2)(postcss@8.5.3)(typescript@5.7.3)
 
   packages/eslint-config:
+    dependencies:
+      '@eslint/js':
+        specifier: ^9.18.0
+        version: 9.20.0
     devDependencies:
       '@next/eslint-plugin-next':
         specifier: ^15.1.7
@@ -7945,6 +7955,11 @@ snapshots:
   '@tokenizer/token@0.3.0': {}
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
+
+  '@ts-rest/core@3.52.1(@types/node@20.17.19)(zod@3.24.2)':
+    optionalDependencies:
+      '@types/node': 20.17.19
+      zod: 3.24.2
 
   '@ts-rest/core@3.52.1(@types/node@22.14.0)(zod@3.24.2)':
     optionalDependencies:

@@ -437,9 +437,8 @@ export default function WeaknessReportPage() {
             {commonlyFailedWords.map((word) => (
               <Card key={word.id} className="overflow-hidden">
                 <div
-                  className={`h-1 w-full ${
-                    word.failureRate > 80 ? "bg-red-500" : word.failureRate > 60 ? "bg-orange-500" : "bg-yellow-500"
-                  }`}
+                  className={`h-1 w-full ${word.failureRate > 80 ? "bg-red-500" : word.failureRate > 60 ? "bg-orange-500" : "bg-yellow-500"
+                    }`}
                 />
                 <CardContent className="p-4">
                   <div className="mb-2 flex items-start justify-between">
