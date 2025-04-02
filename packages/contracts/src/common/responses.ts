@@ -18,3 +18,8 @@ export const UnauthorizedResponse = z.object({
   message: z.string(),
 });
 
+export const BadRequestTokenError = z.object({
+  error: z.literal('Bad Request'),
+  message: z.string(),
+});
+

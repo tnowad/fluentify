@@ -1,5 +1,5 @@
 import { initContract } from '@ts-rest/core';
-import { authContract } from './auth.contract';
+import { authContract } from './auth/auth.contract';
 
 const c = initContract();
 
@@ -7,5 +7,6 @@ export const apiContracts = c.router({
   auth: authContract
 })
 
-export * from "./auth"
-export * from "./common"
+export * from "./auth/auth.contract"
+export * from "./auth/auth.schemas"
+export * from "./common/responses"

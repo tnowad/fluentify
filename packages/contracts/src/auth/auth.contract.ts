@@ -1,6 +1,23 @@
 import { initContract } from '@ts-rest/core';
 import { z } from 'zod';
-import { LoginRequest, AuthSuccessResponse, UnauthorizedResponse, ValidationErrorResponse, RegisterRequest, ConflictResponse, RefreshRequest, TokenPairSchema, UserSchema, LogoutRequest, EmailVerificationRequest, BadRequestTokenError, ForgotPasswordRequest, ResetPasswordRequest } from './auth.schemas';
+import {
+  UnauthorizedResponse,
+  ValidationErrorResponse,
+  ConflictResponse,
+  BadRequestTokenError,
+} from "../common/responses"
+import {
+  LoginRequest,
+  AuthSuccessResponse,
+  RegisterRequest,
+  RefreshRequest,
+  TokenPairSchema,
+  UserSchema,
+  LogoutRequest,
+  EmailVerificationRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest
+} from './auth.schemas';
 
 const c = initContract();
 
