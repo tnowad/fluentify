@@ -1,0 +1,51 @@
+services:
+  fluentify-postgres:
+    image: postgres:16
+    container_name: fluentify_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  fluentify-redis:
+    image: redis:7
+    container_name: fluentify_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+
+  fluentify-qdrant:
+    image: qdrant/qdrant
+    container_name: fluentify_qdrant
+    restart: unless-stopped
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "6333:6333"
+
+  fluentify-clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: fluentify_clickhouse
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: logs
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+
+volumes:
+  pg_data:
+  redis_data:
+  qdrant_data:
+  clickhouse_data:
