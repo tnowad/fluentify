@@ -38,12 +38,21 @@ importers:
       '@nestjs/platform-express':
         specifier: ^11.0.1
         version: 11.0.13(@nestjs/common@11.0.13(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.13)
+      '@ts-rest/core':
+        specifier: ^3.52.1
+        version: 3.52.1(@types/node@22.14.0)(zod@3.24.2)
+      '@ts-rest/nest':
+        specifier: ^3.52.1
+        version: 3.52.1(@nestjs/common@11.0.13(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.13)(@ts-rest/core@3.52.1(@types/node@22.14.0)(zod@3.24.2))(rxjs@7.8.1)(zod@3.24.2)
       '@types/pg':
         specifier: ^8.11.11
         version: 8.11.11
       '@workspace/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.2
       kysely:
         specifier: ^0.27.6
         version: 0.27.6
@@ -56,6 +65,9 @@ importers:
       rxjs:
         specifier: ^7.8.1
         version: 7.8.1
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.2.0
@@ -2346,6 +2358,18 @@ packages:
       zod:
         optional: true
 
+  '@ts-rest/nest@3.52.1':
+    resolution: {integrity: sha512-6Abk9tRu0yxBv6PORAU6RIRizRQTQow7VeZ41j9vfEXXYUcR6DnkltGVIGSBepkg50wwJ9ygr0fplwNoWUUkBw==}
+    peerDependencies:
+      '@nestjs/common': ^9.0.0 || ^10.0.0 || ^11.0.0
+      '@nestjs/core': ^9.0.0 || ^10.0.0 || ^11.0.0
+      '@ts-rest/core': ~3.52.0
+      rxjs: ^7.1.0
+      zod: ^3.22.3
+    peerDependenciesMeta:
+      zod:
+        optional: true
+
   '@tsconfig/node10@1.0.11':
     resolution: {integrity: sha512-DcRjDCujK/kCk/cUe8Xz8ZSpm8mS3mNNpta+jGCA6USEDfktlNvm1+IuZ9eTcDbNk41BHwpHHeW+N1lKCz4zOw==}
 
@@ -2875,6 +2899,10 @@ packages:
   basic-ftp@5.0.5:
     resolution: {integrity: sha512-4Bcg1P8xhUuqcii/S0Z9wiHIrQVPMermM1any+MX5GeGD7faD3/msQUDGLol9wOcz4/jbg/WJnGqoJF6LiBdtg==}
     engines: {node: '>=10.0.0'}
+
+  bcryptjs@3.0.2:
+    resolution: {integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog==}
+    hasBin: true
 
   bin-version-check@5.1.0:
     resolution: {integrity: sha512-bYsvMqJ8yNGILLz1KP9zKLzQ6YpljV3ln1gqhuLkUtyfGi3qXKGuK2p+U4NAvjVFzDFiBBtOpCOSFNuYYEGZ5g==}
@@ -8113,6 +8141,15 @@ snapshots:
       '@types/node': 22.14.0
       zod: 3.24.2
 
+  '@ts-rest/nest@3.52.1(@nestjs/common@11.0.13(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.13)(@ts-rest/core@3.52.1(@types/node@22.14.0)(zod@3.24.2))(rxjs@7.8.1)(zod@3.24.2)':
+    dependencies:
+      '@nestjs/common': 11.0.13(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      '@nestjs/core': 11.0.13(@nestjs/common@11.0.13(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/platform-express@11.0.13)(reflect-metadata@0.2.2)(rxjs@7.8.1)
+      '@ts-rest/core': 3.52.1(@types/node@22.14.0)(zod@3.24.2)
+      rxjs: 7.8.1
+    optionalDependencies:
+      zod: 3.24.2
+
   '@tsconfig/node10@1.0.11': {}
 
   '@tsconfig/node12@1.0.11': {}
@@ -8807,6 +8844,8 @@ snapshots:
   base64-js@1.5.1: {}
 
   basic-ftp@5.0.5: {}
+
+  bcryptjs@3.0.2: {}
 
   bin-version-check@5.1.0:
     dependencies:

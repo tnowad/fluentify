@@ -5,7 +5,7 @@ export interface DB {
 interface UsersTable {
   id: string;
   email: string;
-  password_hash: string;
+  hashed_password: string;
   name: string;
   created_at: Date;
 }
