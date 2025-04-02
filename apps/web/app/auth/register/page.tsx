@@ -13,9 +13,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@workspace/ui/components/input"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Separator } from "@workspace/ui/components/separator"
-import { RegisterRequest } from "@workspace/contracts"
+import { HttpStatus, RegisterRequest } from "@workspace/contracts"
 import { useMutation } from "@tanstack/react-query"
 import { api } from "@/lib/api"
+import { toast } from "sonner"
+import { redirect } from "next/navigation"
+import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REFRESH_TOKEN } from "@/lib/constants"
+import { setCookie } from "cookies-next"
 
 const formSchema = RegisterRequest.extend({
   confirmPassword: z.string().min(6),
@@ -44,11 +48,41 @@ export default function RegisterPage() {
 
   const mutation = useMutation({
     mutationFn: (data: z.infer<typeof RegisterRequest>) => api.auth.register({ body: data }),
-    onSuccess: () => {
-      console.log("Registered successfully")
+    onSuccess: async (response) => {
+      switch (response.status) {
+        case HttpStatus.CREATED:
+          const { accessToken, refreshToken } = response.body;
+          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { path: '/' });
+          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { path: '/' });
+          toast("Account created successfully")
+          redirect("/")
+        case HttpStatus.UNPROCESSABLE_ENTITY:
+          for (const issue of response.body.issues) {
+            const path = issue.path.join('.')
+            form.setError(path as any, {
+              type: String(response.status),
+              message: issue.message,
+            })
+          }
+          break
+        case HttpStatus.CONFLICT:
+          form.setError("email", {
+            type: String(response.status),
+            message: response.body.message,
+          })
+          break
+        default:
+          form.setError("root", {
+            type: String(response.status),
+            message: "Registration failed",
+          })
+      }
     },
     onError: (err: any) => {
-      console.error("Registration error", err)
+      form.setError("root", {
+        type: "server",
+        message: err?.response?.data?.message ?? "Registration failed",
+      })
     },
   })
 
@@ -177,6 +211,11 @@ export default function RegisterPage() {
                 )}
               />
               <Button type="submit" className="w-full">Create account</Button>
+              {form.formState.errors.root && (
+                <p className="text-sm text-destructive text-center">
+                  {form.formState.errors.root.message}
+                </p>
+              )}
             </form>
           </Form>
 

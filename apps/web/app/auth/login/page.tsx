@@ -15,7 +15,11 @@ import { Input } from "@workspace/ui/components/input"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import { Separator } from "@workspace/ui/components/separator"
 import { api } from "@/lib/api"
-import { LoginRequest } from "@workspace/contracts"
+import { HttpStatus, LoginRequest } from "@workspace/contracts"
+import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REFRESH_TOKEN } from "@/lib/constants"
+import { setCookie } from "cookies-next"
+import { toast } from "sonner"
+import { redirect } from "next/navigation"
 
 const formSchema =
   LoginRequest.extend({
@@ -36,8 +40,34 @@ export default function LoginPage() {
 
   const mutation = useMutation({
     mutationFn: (data: z.infer<typeof formSchema>) => api.auth.login({ body: data }),
-    onSuccess: () => {
-      console.log("Logged in")
+    onSuccess: async (response) => {
+      switch (response.status) {
+        case HttpStatus.OK:
+          const { accessToken, refreshToken } = response.body;
+          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { path: '/' });
+          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { path: '/' });
+          toast("Login successful")
+          redirect("/")
+        case HttpStatus.UNAUTHORIZED:
+          form.setError("root", {
+            type: String(response.status),
+            message: response.body.message
+          })
+          break;
+        case HttpStatus.UNPROCESSABLE_ENTITY:
+          for (const issue of response.body.issues) {
+            const path = issue.path.join('.');
+            form.setError(path as any, {
+              type: String(response.status),
+              message: issue.message,
+            })
+          }
+        default:
+          form.setError("root", {
+            type: String(response.status),
+            message: "Login failed",
+          })
+      }
     },
     onError: (err: any) => {
       form.setError("email", {
@@ -127,6 +157,11 @@ export default function LoginPage() {
               <Button type="submit" className="w-full" disabled={mutation.isPending}>
                 Sign in
               </Button>
+              {form.formState.errors.root && (
+                <p className="text-sm text-destructive text-center">
+                  {form.formState.errors.root.message}
+                </p>
+              )}
             </form>
           </Form>
 
