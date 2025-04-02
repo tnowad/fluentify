@@ -150,6 +150,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@tanstack/react-query':
+        specifier: ^5.72.1
+        version: 5.72.1(react@19.0.0)
       '@ts-rest/core':
         specifier: ^3.52.1
         version: 3.52.1(@types/node@20.17.19)(zod@3.24.2)
@@ -2340,6 +2343,14 @@ packages:
 
   '@tailwindcss/postcss@4.0.8':
     resolution: {integrity: sha512-SUwlrXjn1ycmUbA0o0n3Y0LqlXqxN5R8HR+ti+OBbRS79wl2seDmiypEs3xJCuQXe07ol81s1AmRMitBmPveJA==}
+
+  '@tanstack/query-core@5.72.1':
+    resolution: {integrity: sha512-nOu0EEkZuJ0BZnYgeaEfo44+psq1jBO7/zp3KudixD4dvgOVerrhAhDEKsWx2N7MxB59mjO4r0ddP/VqWGPK+Q==}
+
+  '@tanstack/react-query@5.72.1':
+    resolution: {integrity: sha512-4UEMyRx54xj144D2nDvDIMiXSG5BrqyCJrmyNoGbymNS+VWODcBDFrmRk9p2fe12UGZ4JtKPTNuW2Jg0aisUgQ==}
+    peerDependencies:
+      react: ^18 || ^19
 
   '@tokenizer/token@0.3.0':
     resolution: {integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==}
@@ -8126,6 +8137,13 @@ snapshots:
       lightningcss: 1.29.1
       postcss: 8.5.3
       tailwindcss: 4.0.8
+
+  '@tanstack/query-core@5.72.1': {}
+
+  '@tanstack/react-query@5.72.1(react@19.0.0)':
+    dependencies:
+      '@tanstack/query-core': 5.72.1
+      react: 19.0.0
 
   '@tokenizer/token@0.3.0': {}
 

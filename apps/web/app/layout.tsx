@@ -1,7 +1,8 @@
 import { Geist, Geist_Mono } from "next/font/google"
 
 import "@workspace/ui/globals.css"
-import { Providers } from "@/components/providers"
+import { Providers as ThemeProviders } from "@/components/providers"
+import { Providers } from "./providers"
 
 const fontSans = Geist({
   subsets: ["latin"],
