@@ -6,6 +6,9 @@
     "experimentalDecorators": true,
     "target": "ES2021",
     "outDir": "./dist",
-    "incremental": true
+    "incremental": true,
+    "include": [
+      "**/*.d.ts"
+    ]
   }
 }

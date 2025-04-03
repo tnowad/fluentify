@@ -2,12 +2,17 @@ import {
   Controller,
   HttpStatus,
   NotImplementedException,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { TsRestException, tsRestHandler, TsRestHandler } from '@ts-rest/nest';
 import { authContract } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { compare, hash } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
+import { JwtAuthGuard } from './jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
+import { CurrentUser, UserPayload } from './current-user.decorator';
 
 @Controller()
 export class AuthController {
@@ -107,7 +112,7 @@ export class AuthController {
           },
         };
       },
-      me: () => {
+      me: async () => {
         throw new NotImplementedException();
       },
       forgotPassword: () => {
@@ -116,8 +121,59 @@ export class AuthController {
       logout: () => {
         throw new NotImplementedException();
       },
-      refresh: () => {
-        throw new NotImplementedException();
+      refresh: async ({ body }) => {
+        const { refreshToken } = body;
+
+        try {
+          const payload = this.jwtService.verify(refreshToken);
+
+          if (payload.tokenType !== 'refresh') {
+            throw new TsRestException(authContract.refresh, {
+              status: HttpStatus.UNAUTHORIZED,
+              body: {
+                error: 'Unauthorized',
+                message: 'Invalid token type',
+              },
+            });
+          }
+
+          const user = await this.db
+            .selectFrom('users')
+            .select(['id', 'email'])
+            .where('id', '=', payload.sub)
+            .executeTakeFirst();
+
+          if (!user) {
+            throw new TsRestException(authContract.refresh, {
+              status: HttpStatus.UNAUTHORIZED,
+              body: {
+                error: 'Unauthorized',
+                message: 'User not found',
+              },
+            });
+          }
+
+          const tokens = this.generateTokens({
+            sub: user.id,
+            email: user.email,
+          });
+
+          return {
+            status: HttpStatus.OK,
+            body: {
+              accessToken: tokens.accessToken,
+              refreshToken: tokens.refreshToken,
+            },
+          };
+        } catch (err) {
+          throw new TsRestException(authContract.refresh, {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              error: 'Unauthorized',
+              message: 'Invalid or expired refresh token',
+            },
+          });
+        }
       },
       resetPassword: () => {
         throw new NotImplementedException();
@@ -125,6 +181,23 @@ export class AuthController {
       verifyEmail: () => {
         throw new NotImplementedException();
       },
+    });
+  }
+
+  @TsRestHandler(authContract.me)
+  @UseGuards(JwtAuthGuard)
+  me(@CurrentUser() userPayload: UserPayload) {
+    return tsRestHandler(authContract.me, async () => {
+      const user = await this.db
+        .selectFrom('users')
+        .select(['id', 'name', 'email'])
+        .where('id', '=', userPayload.id)
+        .executeTakeFirstOrThrow();
+
+      return {
+        status: HttpStatus.OK,
+        body: user,
+      };
     });
   }
 
