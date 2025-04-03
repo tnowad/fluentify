@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { DatabaseModule } from './database/database.module';
-import { AuthModule } from './auth/auth.module';
 import { TsRestModule } from '@ts-rest/nest';
+import { AuthModule } from './auth/auth.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -16,4 +16,4 @@ import { TsRestModule } from '@ts-rest/nest';
     AuthModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

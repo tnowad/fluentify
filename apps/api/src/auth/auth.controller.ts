@@ -1,31 +1,39 @@
 import {
   Controller,
   HttpStatus,
+  Logger,
   NotImplementedException,
-  Req,
   UseGuards,
 } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { TsRestException, tsRestHandler, TsRestHandler } from '@ts-rest/nest';
 import { authContract } from '@workspace/contracts';
-import { DatabaseService } from '../database/database.service';
 import { compare, hash } from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { AuthGuard } from '@nestjs/passport';
+import { DatabaseService } from '../database/database.service';
 import { CurrentUser, UserPayload } from './current-user.decorator';
+import { JwtAuthGuard } from './jwt-auth.guard';
+
+type JwtPayload = {
+  sub: string;
+  email: string;
+  tokenType: 'access' | 'refresh';
+};
 
 @Controller()
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly db: DatabaseService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   @TsRestHandler(authContract)
   handler() {
     return tsRestHandler(authContract, {
       register: async ({ body }) => {
-        const { name, email, password } = body;
+        const { name, email } = body;
+        this.logger.log(`Register attempt: ${email}`);
 
         const isUserExists = await this.db
           .selectFrom('users')
@@ -34,6 +42,7 @@ export class AuthController {
           .executeTakeFirst();
 
         if (isUserExists) {
+          this.logger.warn(`Register failed - Email in use: ${email}`);
           throw new TsRestException(authContract.register, {
             status: HttpStatus.CONFLICT,
             body: {
@@ -43,8 +52,7 @@ export class AuthController {
           });
         }
 
-        const hashedPassword = await hash(password, 10);
-
+        const hashedPassword = await hash(body.password, 10);
         const user = await this.db
           .insertInto('users')
           .values({
@@ -55,12 +63,13 @@ export class AuthController {
           .returning(['id', 'email', 'name'])
           .executeTakeFirstOrThrow();
 
+        this.logger.log(`User registered: ${email} (ID: ${user.id})`);
         const tokens = this.generateTokens({ sub: user.id, email });
 
         return {
           status: HttpStatus.CREATED,
           body: {
-            user: user,
+            user,
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
           },
@@ -68,7 +77,8 @@ export class AuthController {
       },
 
       login: async ({ body }) => {
-        const { email, password } = body;
+        const { email } = body;
+        this.logger.log(`Login attempt: ${email}`);
 
         const user = await this.db
           .selectFrom('users')
@@ -77,6 +87,7 @@ export class AuthController {
           .executeTakeFirst();
 
         if (!user) {
+          this.logger.warn(`Login failed - User not found: ${email}`);
           throw new TsRestException(authContract.login, {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -86,8 +97,12 @@ export class AuthController {
           });
         }
 
-        const isPasswordValid = await compare(password, user.hashed_password);
+        const isPasswordValid = await compare(
+          body.password,
+          user.hashed_password,
+        );
         if (!isPasswordValid) {
+          this.logger.warn(`Login failed - Invalid password: ${email}`);
           throw new TsRestException(authContract.login, {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -97,6 +112,7 @@ export class AuthController {
           });
         }
 
+        this.logger.log(`Login successful: ${email} (ID: ${user.id})`);
         const tokens = this.generateTokens({ sub: user.id, email });
 
         return {
@@ -112,22 +128,15 @@ export class AuthController {
           },
         };
       },
-      me: async () => {
-        throw new NotImplementedException();
-      },
-      forgotPassword: () => {
-        throw new NotImplementedException();
-      },
-      logout: () => {
-        throw new NotImplementedException();
-      },
+
       refresh: async ({ body }) => {
-        const { refreshToken } = body;
+        this.logger.log(`Refresh token attempt`);
 
         try {
-          const payload = this.jwtService.verify(refreshToken);
+          const payload = this.jwtService.verify<JwtPayload>(body.refreshToken);
 
           if (payload.tokenType !== 'refresh') {
+            this.logger.warn(`Invalid token type in refresh`);
             throw new TsRestException(authContract.refresh, {
               status: HttpStatus.UNAUTHORIZED,
               body: {
@@ -144,6 +153,7 @@ export class AuthController {
             .executeTakeFirst();
 
           if (!user) {
+            this.logger.warn(`Refresh failed - User not found`);
             throw new TsRestException(authContract.refresh, {
               status: HttpStatus.UNAUTHORIZED,
               body: {
@@ -153,6 +163,7 @@ export class AuthController {
             });
           }
 
+          this.logger.log(`Token refreshed for user: ${user.email}`);
           const tokens = this.generateTokens({
             sub: user.id,
             email: user.email,
@@ -166,6 +177,7 @@ export class AuthController {
             },
           };
         } catch (err) {
+          this.logger.warn(`Refresh token error: ${err}`);
           throw new TsRestException(authContract.refresh, {
             status: HttpStatus.UNAUTHORIZED,
             body: {
@@ -174,6 +186,16 @@ export class AuthController {
             },
           });
         }
+      },
+
+      me: async () => {
+        throw new NotImplementedException();
+      },
+      forgotPassword: () => {
+        throw new NotImplementedException();
+      },
+      logout: () => {
+        throw new NotImplementedException();
       },
       resetPassword: () => {
         throw new NotImplementedException();
@@ -194,6 +216,7 @@ export class AuthController {
         .where('id', '=', userPayload.id)
         .executeTakeFirstOrThrow();
 
+      this.logger.log(`Fetched current user info: ${user.email}`);
       return {
         status: HttpStatus.OK,
         body: user,
@@ -206,12 +229,10 @@ export class AuthController {
       { ...payload, tokenType: 'access' },
       { expiresIn: '15m' },
     );
-
     const refreshToken = this.jwtService.sign(
       { ...payload, tokenType: 'refresh' },
       { expiresIn: '7d' },
     );
-
     return { accessToken, refreshToken };
   }
 }
