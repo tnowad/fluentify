@@ -34,9 +34,12 @@ import {
   Clock,
   Flame
 } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
+import { getMeQueryOptions } from '@/lib/queries'
+import { useRouter } from 'next/navigation'
 
 const mainMenu = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/daily-quiz', label: 'Daily Quiz', icon: Clock },
   { href: '/discover', label: 'Discover', icon: Flame },
   { href: '/how-do-i-say', label: 'How Do I Say', icon: BookOpen },
@@ -69,6 +72,14 @@ function RenderSidebarMenu({ items }: { items: typeof mainMenu }) {
 }
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const { data: user, isLoading } = useQuery(getMeQueryOptions)
+
+  if (isLoading) return null
+  if (!user) {
+    router.replace('/login')
+    return null
+  }
 
   return (
     <SidebarProvider>
@@ -77,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <SidebarHeader>
             <div className="flex items-center gap-2 px-4 py-2">
               <BookOpen className="h-6 w-6 text-primary" />
-              <span className="text-lg font-semibold">TOEIC Master</span>
+              <span className="text-lg font-semibold">Fluentify</span>
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -112,7 +123,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center justify-between border-b px-6 py-4">
             <div>
               <h1 className="text-xl font-semibold">Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Welcome back, Alex! Ready to continue learning?</p>
+              <p className="text-sm text-muted-foreground">
+                Welcome back, {user?.name ?? 'Learner'}! Ready to continue learning?
+              </p>
             </div>
             <SidebarTrigger className="lg:hidden" />
           </div>
