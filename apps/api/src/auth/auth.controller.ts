@@ -7,10 +7,14 @@ import { TsRestException, tsRestHandler, TsRestHandler } from '@ts-rest/nest';
 import { authContract } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
 import { hash } from 'bcryptjs';
+import { JwtService } from '@nestjs/jwt';
 
 @Controller()
 export class AuthController {
-  constructor(private readonly db: DatabaseService) { }
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly jwtService: JwtService,
+  ) { }
 
   @TsRestHandler(authContract)
   handler() {
@@ -46,12 +50,14 @@ export class AuthController {
           .returning(['id', 'email', 'name'])
           .executeTakeFirstOrThrow();
 
+        const tokens = this.generateTokens({ sub: user.id, email });
+
         return {
           status: HttpStatus.CREATED,
           body: {
             user: user,
-            accessToken: '', // TODO: attach JWT
-            refreshToken: '', // TODO: attach Refresh Token
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
           },
         };
       },
@@ -78,5 +84,19 @@ export class AuthController {
         throw new NotImplementedException();
       },
     });
+  }
+
+  generateTokens(payload: { sub: string; email: string }) {
+    const accessToken = this.jwtService.sign(
+      { ...payload, tokenType: 'access' },
+      { expiresIn: '15m' },
+    );
+
+    const refreshToken = this.jwtService.sign(
+      { ...payload, tokenType: 'refresh' },
+      { expiresIn: '7d' },
+    );
+
+    return { accessToken, refreshToken };
   }
 }
