@@ -5,7 +5,7 @@ import {
   ValidationErrorResponse,
   ConflictResponse,
   BadRequestTokenError,
-} from "../common/responses"
+} from "../common/responses";
 import {
   LoginRequest,
   AuthSuccessResponse,
@@ -18,6 +18,7 @@ import {
   ForgotPasswordRequest,
   ResetPasswordRequest
 } from './auth.schemas';
+import { HttpStatus } from 'src/common/http-status';
 
 const c = initContract();
 
@@ -28,9 +29,9 @@ export const authContract = c.router({
     summary: 'Login to the application',
     body: LoginRequest,
     responses: {
-      200: AuthSuccessResponse,
-      401: UnauthorizedResponse,
-      422: ValidationErrorResponse,
+      [HttpStatus.OK]: AuthSuccessResponse,
+      [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
+      [HttpStatus.UNPROCESSABLE_ENTITY]: ValidationErrorResponse,
     },
   },
   register: {
@@ -39,9 +40,9 @@ export const authContract = c.router({
     summary: 'Register a new user',
     body: RegisterRequest,
     responses: {
-      201: AuthSuccessResponse,
-      409: ConflictResponse,
-      422: ValidationErrorResponse,
+      [HttpStatus.CREATED]: AuthSuccessResponse,
+      [HttpStatus.CONFLICT]: ConflictResponse,
+      [HttpStatus.UNPROCESSABLE_ENTITY]: ValidationErrorResponse,
     },
   },
   refresh: {
@@ -50,8 +51,8 @@ export const authContract = c.router({
     summary: 'Refresh access token',
     body: RefreshRequest,
     responses: {
-      200: TokenPairSchema,
-      401: UnauthorizedResponse,
+      [HttpStatus.OK]: TokenPairSchema,
+      [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
   me: {
@@ -59,8 +60,8 @@ export const authContract = c.router({
     path: '/auth/me',
     summary: 'Get current user info',
     responses: {
-      200: UserSchema,
-      401: UnauthorizedResponse,
+      [HttpStatus.OK]: UserSchema,
+      [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
   logout: {
@@ -69,8 +70,8 @@ export const authContract = c.router({
     summary: 'Logout user',
     body: LogoutRequest,
     responses: {
-      204: z.null(),
-      401: UnauthorizedResponse,
+      [HttpStatus.NO_CONTENT]: z.null(),
+      [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
   verifyEmail: {
@@ -79,8 +80,8 @@ export const authContract = c.router({
     summary: 'Verify email with token',
     body: EmailVerificationRequest,
     responses: {
-      204: z.null(),
-      400: BadRequestTokenError,
+      [HttpStatus.NO_CONTENT]: z.null(),
+      [HttpStatus.BAD_REQUEST]: BadRequestTokenError,
     },
   },
   forgotPassword: {
@@ -89,7 +90,7 @@ export const authContract = c.router({
     summary: 'Send password reset email',
     body: ForgotPasswordRequest,
     responses: {
-      204: z.null(),
+      [HttpStatus.NO_CONTENT]: z.null(),
     },
   },
   resetPassword: {
@@ -98,9 +99,9 @@ export const authContract = c.router({
     summary: 'Reset password with token',
     body: ResetPasswordRequest,
     responses: {
-      204: z.null(),
-      400: BadRequestTokenError,
-      422: ValidationErrorResponse,
+      [HttpStatus.NO_CONTENT]: z.null(),
+      [HttpStatus.BAD_REQUEST]: BadRequestTokenError,
+      [HttpStatus.UNPROCESSABLE_ENTITY]: ValidationErrorResponse,
     },
   },
 });

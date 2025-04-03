@@ -10,3 +10,4 @@ export const apiContracts = c.router({
 export * from "./auth/auth.contract"
 export * from "./auth/auth.schemas"
 export * from "./common/responses"
+export * from "./common/http-status"
