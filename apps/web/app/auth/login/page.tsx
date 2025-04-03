@@ -19,7 +19,8 @@ import { HttpStatus, LoginRequest } from "@workspace/contracts"
 import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REFRESH_TOKEN } from "@/lib/constants"
 import { setCookie } from "cookies-next"
 import { toast } from "sonner"
-import { redirect } from "next/navigation"
+import { redirect, useRouter } from "next/navigation"
+import { isDev } from "@/lib/env"
 
 const formSchema =
   LoginRequest.extend({
@@ -28,14 +29,20 @@ const formSchema =
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-      rememberMe: false,
-    },
+    defaultValues:
+      isDev ? {
+        email: "user@fluentify.com",
+        password: "Password123",
+        rememberMe: true,
+      } : {
+        email: "",
+        password: "",
+        rememberMe: false,
+      },
   })
 
   const mutation = useMutation({
@@ -44,10 +51,11 @@ export default function LoginPage() {
       switch (response.status) {
         case HttpStatus.OK:
           const { accessToken, refreshToken } = response.body;
-          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { path: '/' });
-          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { path: '/' });
+          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken);
+          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken);
           toast("Login successful")
-          redirect("/")
+          router.push("/")
+          break;
         case HttpStatus.UNAUTHORIZED:
           form.setError("root", {
             type: String(response.status),
@@ -62,6 +70,7 @@ export default function LoginPage() {
               message: issue.message,
             })
           }
+          break;
         default:
           form.setError("root", {
             type: String(response.status),

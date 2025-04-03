@@ -20,6 +20,7 @@ import { toast } from "sonner"
 import { redirect } from "next/navigation"
 import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REFRESH_TOKEN } from "@/lib/constants"
 import { setCookie } from "cookies-next"
+import { isDev } from "@/lib/env"
 
 const formSchema = RegisterRequest.extend({
   confirmPassword: z.string().min(6),
@@ -37,7 +38,13 @@ export default function RegisterPage() {
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: isDev ? {
+      name: "John Doe",
+      email: "user@fluentify.com",
+      password: "Password123",
+      confirmPassword: "Password123",
+      agreeTerms: true
+    } : {
       name: "",
       email: "",
       password: "",
