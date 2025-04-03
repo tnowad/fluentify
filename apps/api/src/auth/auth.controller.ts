@@ -6,7 +6,7 @@ import {
 import { TsRestException, tsRestHandler, TsRestHandler } from '@ts-rest/nest';
 import { authContract } from '@workspace/contracts';
 import { DatabaseService } from '../database/database.service';
-import { hash } from 'bcryptjs';
+import { compare, hash } from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller()
@@ -62,8 +62,50 @@ export class AuthController {
         };
       },
 
-      login: () => {
-        throw new NotImplementedException();
+      login: async ({ body }) => {
+        const { email, password } = body;
+
+        const user = await this.db
+          .selectFrom('users')
+          .select(['id', 'email', 'name', 'hashed_password'])
+          .where('email', '=', email)
+          .executeTakeFirst();
+
+        if (!user) {
+          throw new TsRestException(authContract.login, {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              error: 'Unauthorized',
+              message: 'Invalid credentials',
+            },
+          });
+        }
+
+        const isPasswordValid = await compare(password, user.hashed_password);
+        if (!isPasswordValid) {
+          throw new TsRestException(authContract.login, {
+            status: HttpStatus.UNAUTHORIZED,
+            body: {
+              error: 'Unauthorized',
+              message: 'Invalid credentials',
+            },
+          });
+        }
+
+        const tokens = this.generateTokens({ sub: user.id, email });
+
+        return {
+          status: HttpStatus.OK,
+          body: {
+            user: {
+              id: user.id,
+              email: user.email,
+              name: user.name,
+            },
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+          },
+        };
       },
       me: () => {
         throw new NotImplementedException();
