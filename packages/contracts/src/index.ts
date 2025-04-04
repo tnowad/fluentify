@@ -2,13 +2,15 @@ import { initContract } from '@ts-rest/core';
 import { authContract } from './auth/auth.contract';
 import { wordContract } from './word/word.contract';
 import { topicContract } from './topic/topic.contract';
+import { flashcardContract } from './flashcard/flashcard.contract';
 
 const c = initContract();
 
 export const apiContracts = c.router({
   auth: authContract,
   word: wordContract,
-  topic: topicContract
+  topic: topicContract,
+  flashcard: flashcardContract,
 })
 
 export * from "./common/responses"
@@ -19,3 +21,5 @@ export * from "./word/word.contract"
 export * from "./word/word.schemas"
 export * from "./topic/topic.contract"
 export * from "./topic/topic.schemas"
+export * from "./flashcard/flashcard.contract"
+export * from "./flashcard/flashcard.schemas"

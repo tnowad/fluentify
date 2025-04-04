@@ -313,7 +313,8 @@ export class TopicsController {
         const builder = this.db
           .selectFrom('flashcards')
           .selectAll()
-          .where('topic_id', '=', params.id);
+          .where('topic_id', '=', params.id)
+          .where('user_id', '=', user.id);
 
         if (cursor) {
           builder.where('id', '<', cursor);
@@ -333,6 +334,7 @@ export class TopicsController {
           body: {
             items: flashcards.map((card) => ({
               id: card.id,
+              topicId: card.topic_id,
               wordId: card.word_id,
               userId: card.user_id,
               status: card.status,

@@ -4,7 +4,6 @@ import {
   TopicSchema,
   CreateTopicRequest,
   UpdateTopicRequest,
-  FlashcardSchema,
 } from './topic.schemas';
 import {
   UnauthorizedResponse,
@@ -15,6 +14,7 @@ import {
   CursorPaginationResponse,
 } from '../common/responses';
 import { HttpStatus } from 'src/common/http-status';
+import { FlashcardSchema } from 'src/flashcard/flashcard.schemas';
 
 const c = initContract();
 

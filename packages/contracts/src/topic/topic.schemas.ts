@@ -20,15 +20,3 @@ export const UpdateTopicRequest = z.object({
   description: z.string().optional(),
   isPublic: z.boolean().optional(),
 });
-
-export const FlashcardSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string().uuid(),
-  wordId: z.string().uuid(),
-  status: z.enum(['new', 'learning', 'mastered']),
-  nextReviewAt: z.string().datetime(),
-  lastReviewedAt: z.string().datetime().nullable(),
-  easeFactor: z.number(),
-  intervalDays: z.number(),
-  repetitions: z.number(),
-});
