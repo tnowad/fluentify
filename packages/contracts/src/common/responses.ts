@@ -23,3 +23,7 @@ export const BadRequestTokenError = z.object({
   message: z.string(),
 });
 
+export const NotFoundResponse = z.object({
+  error: z.literal('Not Found'),
+  message: z.string(),
+});
