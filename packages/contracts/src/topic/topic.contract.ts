@@ -1,54 +1,49 @@
-import { initContract } from '@ts-rest/core'
-import { z } from 'zod'
+import { initContract } from '@ts-rest/core';
+import { z } from 'zod';
 import {
   TopicSchema,
   CreateTopicRequest,
   UpdateTopicRequest,
-} from './topic.schemas'
+  FlashcardSchema,
+} from './topic.schemas';
 import {
   UnauthorizedResponse,
   ValidationErrorResponse,
   NotFoundResponse,
   ConflictResponse,
-} from '../common/responses'
-import { HttpStatus } from 'src/common/http-status'
+  CursorPaginationQuery,
+  CursorPaginationResponse,
+} from '../common/responses';
+import { HttpStatus } from 'src/common/http-status';
 
-const c = initContract()
+const c = initContract();
 
 export const topicContract = c.router({
   listMyTopics: {
     method: 'GET',
     path: '/topics/my',
-    summary: 'Get current user\'s topics with optional filters',
-    query: z.object({
-      page: z.coerce.number().min(1).default(1),
-      limit: z.coerce.number().min(1).max(100).default(20),
+    summary: "Get current user's topics with cursor pagination",
+    query: CursorPaginationQuery.extend({
       search: z.string().optional(),
     }),
     responses: {
-      [HttpStatus.OK]: z.object({
-        items: z.array(TopicSchema),
-        total: z.number(),
-      }),
+      [HttpStatus.OK]: CursorPaginationResponse(TopicSchema),
       [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
+
   listPublicTopics: {
     method: 'GET',
     path: '/topics/discover',
-    summary: 'List public topics with filters',
-    query: z.object({
-      page: z.coerce.number().min(1).default(1),
-      limit: z.coerce.number().min(1).max(100).default(20),
+    summary: 'List public topics with cursor pagination',
+    query: CursorPaginationQuery.extend({
       search: z.string().optional(),
     }),
     responses: {
-      [HttpStatus.OK]: z.object({
-        items: z.array(TopicSchema),
-        total: z.number(),
-      }),
+      [HttpStatus.OK]: CursorPaginationResponse(TopicSchema),
     },
   },
+
   getTopicById: {
     method: 'GET',
     path: '/topics/:id',
@@ -58,6 +53,7 @@ export const topicContract = c.router({
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
     },
   },
+
   createTopic: {
     method: 'POST',
     path: '/topics',
@@ -69,6 +65,7 @@ export const topicContract = c.router({
       [HttpStatus.UNPROCESSABLE_ENTITY]: ValidationErrorResponse,
     },
   },
+
   updateTopic: {
     method: 'PUT',
     path: '/topics/:id',
@@ -80,6 +77,7 @@ export const topicContract = c.router({
       [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
+
   deleteTopic: {
     method: 'DELETE',
     path: '/topics/:id',
@@ -90,22 +88,31 @@ export const topicContract = c.router({
       [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
+
   listTopicFlashcards: {
     method: 'GET',
     path: '/topics/:id/flashcards',
     summary: 'List all flashcards in topic',
+    query: z.object({
+      limit: z.coerce.number().min(1).max(100).default(20),
+      cursor: z.string().uuid().optional(),
+    }),
     responses: {
-      [HttpStatus.OK]: z.array(z.any()), // TODO: Replace with FlashcardSchema
+      [HttpStatus.OK]: z.object({
+        items: z.array(FlashcardSchema),
+        nextCursor: z.string().uuid().nullable(),
+      }),
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
     },
   },
+
   uploadExcel: {
     method: 'POST',
     path: '/topics/:id/import',
     summary: 'Import flashcards from Excel',
     contentType: 'multipart/form-data',
     body: z.object({
-      file: z.any(), // You can use `z.instanceof(File)` if in browser context
+      file: z.any(),
     }),
     responses: {
       [HttpStatus.CREATED]: z.object({
@@ -116,10 +123,11 @@ export const topicContract = c.router({
       [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
+
   cloneTopic: {
     method: 'POST',
     path: '/topics/:id/clone',
-    summary: 'Clone public topic to current user\'s private list',
+    summary: "Clone public topic to current user's private list",
     body: z.object({
       name: z.string().optional(),
       description: z.string().optional(),
@@ -132,4 +140,4 @@ export const topicContract = c.router({
       [HttpStatus.CONFLICT]: ConflictResponse,
     },
   },
-})
+});
