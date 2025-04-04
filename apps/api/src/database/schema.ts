@@ -1,6 +1,6 @@
 export interface DB {
   users: UsersTable;
-  words: WordsTable
+  words: WordsTable;
 }
 
 interface UsersTable {
@@ -14,14 +14,17 @@ interface UsersTable {
 interface WordsTable {
   id: string;
   word: string;
+  main_phonetic: string | null;
+  phonetics: string[];
   definitions: {
     definition: string;
     example?: string;
     partOfSpeech: string;
   }[];
-  phonetics: string[];
+  examples: string[];
+  synonyms: string[];
   audio_url: string | null;
-  origin?: string;
+  origin?: string | null;
   source: string;
   last_fetched_at: Date;
 }

@@ -1,10 +1,12 @@
 import { initContract } from '@ts-rest/core';
 import { authContract } from './auth/auth.contract';
+import { wordContract } from './word/word.contract';
 
 const c = initContract();
 
 export const apiContracts = c.router({
-  auth: authContract
+  auth: authContract,
+  word: wordContract
 })
 
 export * from "./common/responses"

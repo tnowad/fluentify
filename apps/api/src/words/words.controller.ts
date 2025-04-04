@@ -3,34 +3,25 @@ import { DatabaseService } from '../database/database.service';
 import { wordContract } from '@workspace/contracts';
 import { tsRestHandler, TsRestHandler } from '@ts-rest/nest';
 import axios from 'axios';
-import { randomUUID } from 'crypto';
 import { TsRestResponseError } from '@ts-rest/core';
 import { sql } from 'kysely';
 
-export type DictionaryApiResponse = DictionaryEntry[];
-
-export interface DictionaryEntry {
+export type DictionaryApiResponse = {
   word: string;
   phonetic?: string;
-  phonetics: {
-    text?: string;
-    audio?: string;
-    sourceUrl?: string;
-  }[];
+  phonetics: { text?: string; audio?: string }[];
   meanings: {
     partOfSpeech: string;
     definitions: {
       definition: string;
       example?: string;
       synonyms?: string[];
-      antonyms?: string[];
     }[];
     synonyms: string[];
-    antonyms: string[];
   }[];
   origin?: string;
   sourceUrls: string[];
-}
+}[];
 
 @Controller()
 export class WordsController {
@@ -53,18 +44,21 @@ export class WordsController {
 
         if (cached) {
           this.logger.log(`Cache hit for word: ${word}`);
-          this.logger.debug(`Cached data: ${JSON.stringify(cached)}`);
           return {
-            status: HttpStatus.OK, body: {
+            status: HttpStatus.OK,
+            body: {
               id: cached.id,
+              word: cached.word,
               phonetics: cached.phonetics,
               definitions: cached.definitions,
-              word: cached.word,
-              lastFetchedAt: cached.last_fetched_at.toISOString(),
               audioUrl: cached.audio_url,
+              origin: cached.origin,
               source: cached.source,
-              origin: cached.origin
-            }
+              lastFetchedAt: cached.last_fetched_at.toISOString(),
+              mainPhonetic: cached.main_phonetic,
+              examples: cached?.examples,
+              synonyms: cached?.synonyms,
+            },
           };
         }
 
@@ -72,9 +66,6 @@ export class WordsController {
           const { data } = await axios.get<DictionaryApiResponse>(
             `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
           );
-
-          this.logger.debug(`API raw response: ${JSON.stringify(data[0])}`);
-
           const entry = data[0];
 
           const definitions = entry.meanings.flatMap((meaning) =>
@@ -85,49 +76,76 @@ export class WordsController {
             }))
           );
 
+          const examples = definitions
+            .map((d) => d.example)
+            .filter((e): e is string => Boolean(e));
+
+          const synonyms = Array.from(
+            new Set(
+              entry.meanings.flatMap((m) => [
+                ...m.synonyms,
+                ...m.definitions.flatMap((d) => d.synonyms ?? []),
+              ])
+            )
+          );
+
           const phonetics = entry.phonetics
             .map((p) => p.text)
             .filter((t): t is string => Boolean(t));
 
-          const audio_url =
-            entry.phonetics.find((p) => p.audio)?.audio ?? null;
+          const audio_url = entry.phonetics.find((p) => p.audio)?.audio ?? null;
+          const main_phonetic = entry.phonetic ?? phonetics[0] ?? null;
 
-          this.logger.debug(`Prepared definitions: ${JSON.stringify(definitions)}`);
-          this.logger.debug(`Phonetics: ${JSON.stringify(phonetics)}`);
-          this.logger.debug(`Audio URL: ${audio_url}`);
+          const aiFeedback = {
+            commonMistakes: "Often confused with similar-sounding words.",
+            grammarTips: "This verb should be followed by a direct object.",
+            usageTips: "Commonly used in formal and academic contexts.",
+          };
 
-          const newWord = await this.db
+          const relatedWords = [
+            { word: "Facilitation", partOfSpeech: "noun" },
+            { word: "Facilitator", partOfSpeech: "noun" },
+            { word: "Facilitating", partOfSpeech: "adjective" },
+          ];
+
+          const inserted = await this.db
             .insertInto('words')
             .values({
               word,
-              definitions: sql`${JSON.stringify(definitions)}`,
+              main_phonetic,
               phonetics: sql`${JSON.stringify(phonetics)}`,
-              audio_url,
+              definitions: sql`${JSON.stringify(definitions)}`,
+              examples: sql`${JSON.stringify(examples)}`,
+              synonyms: sql`${JSON.stringify(synonyms)}`,
               origin: entry.origin ?? null,
+              audio_url,
               source: 'dictionaryapi.dev',
-              last_fetched_at: new Date()
+              last_fetched_at: new Date(),
             })
             .returningAll()
             .executeTakeFirstOrThrow();
 
-          this.logger.log(`Inserted word into DB: ${newWord.word}`);
-          this.logger.debug(`DB response: ${JSON.stringify(newWord)}`);
-
           return {
-            status: HttpStatus.OK, body: {
-              id: newWord.id,
-              phonetics: newWord.phonetics,
-              definitions: newWord.definitions,
-              word: newWord.word,
-              lastFetchedAt: newWord.last_fetched_at.toISOString(),
-              audioUrl: newWord.audio_url,
-              source: newWord.source,
-              origin: newWord.origin
-            }
+            status: HttpStatus.OK,
+            body: {
+              id: inserted.id,
+              word: inserted.word,
+              phonetics: inserted.phonetics,
+              definitions: inserted.definitions,
+              audioUrl: inserted.audio_url,
+              origin: inserted.origin,
+              source: inserted.source,
+              lastFetchedAt: inserted.last_fetched_at.toISOString(),
+              mainPhonetic: inserted.main_phonetic,
+              examples: inserted.examples,
+              synonyms: inserted.synonyms,
+              aiFeedback,
+              relatedWords
+            },
           };
         } catch (err) {
-          this.logger.warn(`Word not found in API: ${word}`);
-          this.logger.debug(`Error detail: ${err instanceof Error ? err.message : String(err)}`);
+          this.logger.warn(`Failed to fetch word: ${word}`);
+          this.logger.debug(err instanceof Error ? err.message : String(err));
           throw new TsRestResponseError(wordContract.getWord, {
             status: HttpStatus.NOT_FOUND,
             body: {
