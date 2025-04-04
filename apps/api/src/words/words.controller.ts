@@ -27,7 +27,7 @@ export type DictionaryApiResponse = {
 export class WordsController {
   private readonly logger = new Logger(WordsController.name);
 
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService) {}
 
   @TsRestHandler(wordContract)
   handler() {
@@ -64,7 +64,7 @@ export class WordsController {
 
         try {
           const { data } = await axios.get<DictionaryApiResponse>(
-            `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`
+            `https://api.dictionaryapi.dev/api/v2/entries/en/${word}`,
           );
           const entry = data[0];
 
@@ -73,7 +73,7 @@ export class WordsController {
               definition: def.definition,
               example: def.example ?? undefined,
               partOfSpeech: meaning.partOfSpeech,
-            }))
+            })),
           );
 
           const examples = definitions
@@ -85,8 +85,8 @@ export class WordsController {
               entry.meanings.flatMap((m) => [
                 ...m.synonyms,
                 ...m.definitions.flatMap((d) => d.synonyms ?? []),
-              ])
-            )
+              ]),
+            ),
           );
 
           const phonetics = entry.phonetics
@@ -97,15 +97,15 @@ export class WordsController {
           const main_phonetic = entry.phonetic ?? phonetics[0] ?? null;
 
           const aiFeedback = {
-            commonMistakes: "Often confused with similar-sounding words.",
-            grammarTips: "This verb should be followed by a direct object.",
-            usageTips: "Commonly used in formal and academic contexts.",
+            commonMistakes: 'Often confused with similar-sounding words.',
+            grammarTips: 'This verb should be followed by a direct object.',
+            usageTips: 'Commonly used in formal and academic contexts.',
           };
 
           const relatedWords = [
-            { word: "Facilitation", partOfSpeech: "noun" },
-            { word: "Facilitator", partOfSpeech: "noun" },
-            { word: "Facilitating", partOfSpeech: "adjective" },
+            { word: 'Facilitation', partOfSpeech: 'noun' },
+            { word: 'Facilitator', partOfSpeech: 'noun' },
+            { word: 'Facilitating', partOfSpeech: 'adjective' },
           ];
 
           const inserted = await this.db
@@ -140,7 +140,7 @@ export class WordsController {
               examples: inserted.examples,
               synonyms: inserted.synonyms,
               aiFeedback,
-              relatedWords
+              relatedWords,
             },
           };
         } catch (err) {

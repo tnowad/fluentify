@@ -4,6 +4,7 @@ import { TsRestModule } from '@ts-rest/nest';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { WordsModule } from './words/words.module';
+import { TopicsModule } from './topics/topics.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { WordsModule } from './words/words.module';
     DatabaseModule,
     AuthModule,
     WordsModule,
+    TopicsModule,
   ],
 })
 export class AppModule {}

@@ -1,12 +1,14 @@
 import { initContract } from '@ts-rest/core';
 import { authContract } from './auth/auth.contract';
 import { wordContract } from './word/word.contract';
+import { topicContract } from './topic/topic.contract';
 
 const c = initContract();
 
 export const apiContracts = c.router({
   auth: authContract,
-  word: wordContract
+  word: wordContract,
+  topic: topicContract
 })
 
 export * from "./common/responses"
@@ -15,3 +17,5 @@ export * from "./auth/auth.contract"
 export * from "./auth/auth.schemas"
 export * from "./word/word.contract"
 export * from "./word/word.schemas"
+export * from "./topic/topic.contract"
+export * from "./topic/topic.schemas"

@@ -6,16 +6,16 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('id', 'uuid', (col) =>
       col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
-    .addColumn('word', 'varchar', col => col.notNull().unique())
+    .addColumn('word', 'varchar', (col) => col.notNull().unique())
     .addColumn('main_phonetic', 'varchar')
-    .addColumn('phonetics', 'jsonb', col => col.notNull())
-    .addColumn('definitions', 'jsonb', col => col.notNull())
-    .addColumn('examples', 'jsonb', col => col.notNull())
-    .addColumn('synonyms', 'jsonb', col => col.notNull())
+    .addColumn('phonetics', 'jsonb', (col) => col.notNull())
+    .addColumn('definitions', 'jsonb', (col) => col.notNull())
+    .addColumn('examples', 'jsonb', (col) => col.notNull())
+    .addColumn('synonyms', 'jsonb', (col) => col.notNull())
     .addColumn('audio_url', 'varchar')
     .addColumn('origin', 'varchar')
-    .addColumn('source', 'varchar', col => col.notNull())
-    .addColumn('last_fetched_at', 'timestamp', col => col.notNull())
+    .addColumn('source', 'varchar', (col) => col.notNull())
+    .addColumn('last_fetched_at', 'timestamp', (col) => col.notNull())
     .execute();
 }
 

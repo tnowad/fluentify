@@ -1,6 +1,7 @@
 export interface DB {
   users: UsersTable;
   words: WordsTable;
+  topics: TopicsTable;
 }
 
 interface UsersTable {
@@ -27,4 +28,13 @@ interface WordsTable {
   origin?: string | null;
   source: string;
   last_fetched_at: Date;
+}
+
+interface TopicsTable {
+  id: string;
+  name: string;
+  description?: string;
+  is_public: boolean;
+  created_by: string;
+  created_at: Date;
 }
