@@ -4,7 +4,6 @@ import { CookiesFn, getCookie, setCookie } from 'cookies-next';
 import { jwtDecode } from 'jwt-decode';
 import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REFRESH_TOKEN } from './constants';
 import { isServer } from '@tanstack/react-query';
-import { refreshAccessToken } from '@/actions/refresh-token.action';
 
 const apiConfig = {
   baseUrl: 'http://127.0.0.1:3200',
@@ -19,7 +18,8 @@ const isJwtExpired = (token: string): boolean => {
   try {
     const { exp } = jwtDecode<{ exp: number }>(token);
     return exp * 1000 < Date.now();
-  } catch {
+  } catch (err) {
+    console.error('[isJwtExpired] JWT decode error:', err);
     return true;
   }
 };
@@ -35,8 +35,8 @@ const getAccessToken = async (): Promise<string | null> => {
   const accessToken = await getCookie(COOKIE_KEY_ACCESS_TOKEN, { cookies });
   const refreshToken = await getCookie(COOKIE_KEY_REFRESH_TOKEN, { cookies });
 
-  console.log('[getAccessToken] Access Token:', !!accessToken ? 'Found' : 'Not Found');
-  console.log('[getAccessToken] Refresh Token:', !!refreshToken ? 'Found' : 'Not Found');
+  console.log('[getAccessToken] Access Token:', accessToken ? 'Found' : 'Not Found');
+  console.log('[getAccessToken] Refresh Token:', refreshToken ? 'Found' : 'Not Found');
 
   if (accessToken && !isJwtExpired(accessToken)) {
     console.log('[getAccessToken] Access token valid');
@@ -44,7 +44,7 @@ const getAccessToken = async (): Promise<string | null> => {
   }
 
   if (!refreshToken) {
-    console.warn('[getAccessToken] No refresh token');
+    console.warn('[getAccessToken] No refresh token found');
     return null;
   }
 
@@ -54,43 +54,51 @@ const getAccessToken = async (): Promise<string | null> => {
   }
 
   console.log('[getAccessToken] Refreshing access token...');
-  try {
-    const res = await fetch(`http://127.0.0.1:3000/api/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refreshToken }),
-      credentials: 'include',
-    });
+  const response = await authApi.refresh({ body: { refreshToken } });
+  console.log('[getAccessToken] Token refresh response:', {
+    status: response.status,
+    body: response.body,
+  });
 
-    console.log('[getAccessToken] Refresh API response status:', res.status);
-
-    if (!res.ok) {
-      console.warn('[getAccessToken] Token refresh failed:', res.statusText);
-      return null;
-    }
-
-    const data = await res.json();
-    console.log('[getAccessToken] New access token received');
-
-    return data.accessToken ?? null;
-  } catch (err) {
-    console.error('[getAccessToken] Token refresh error:', err);
+  if (response.status !== HttpStatus.OK) {
+    console.warn('[getAccessToken] Token refresh failed with status:', response.status);
     return null;
   }
+
+  const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.body;
+  console.log('[getAccessToken] Tokens refreshed successfully');
+  console.log('[getAccessToken] Setting new cookies');
+
+  await setCookie(COOKIE_KEY_ACCESS_TOKEN, newAccessToken, { cookies });
+  await setCookie(COOKIE_KEY_REFRESH_TOKEN, newRefreshToken, { cookies });
+  console.log('[getAccessToken] New cookies set successfully');
+
+  return newAccessToken;
 };
 
 export const api = initClient(apiContracts, {
   ...apiConfig,
   api: async (args) => {
+    console.log('[api] Starting API request with args:', args);
+
     const accessToken = await getAccessToken();
-    return tsRestFetchApi({
+    if (accessToken) {
+      console.log('[api] Adding Authorization header with Access Token');
+    } else {
+      console.warn('[api] No Access Token, proceeding without Authorization header');
+    }
+
+    const response = await tsRestFetchApi({
       ...args,
       headers: {
         ...args.headers,
         ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
     });
+
+    console.log('[api] API request completed with response status:', response.status);
+    console.log('[api] Response body:', response.body);
+
+    return response;
   },
 });

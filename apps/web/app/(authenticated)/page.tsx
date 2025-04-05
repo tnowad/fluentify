@@ -11,6 +11,64 @@ import { Button } from "@workspace/ui/components/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { Progress } from "@workspace/ui/components/progress"
 
+const wordsLearned = {
+  total: 1248,
+  increaseThisWeek: 24
+}
+
+const wordsDueToday = {
+  total: 42,
+  new: 15,
+  reviews: 27
+}
+
+const learningStreak = {
+  days: 16
+}
+
+const todayGoal = {
+  completed: 18,
+  target: 30,
+  progressPercent: 60,
+  estimatedTimeMinutes: 15
+}
+
+const weeklyOverview = {
+  dailyProgress: [
+    { day: "M", percent: 65 },
+    { day: "T", percent: 40 },
+    { day: "W", percent: 85 },
+    { day: "T", percent: 30 },
+    { day: "F", percent: 55 },
+    { day: "S", percent: 95 },
+    { day: "S", percent: 75 }
+  ],
+  totalWords: 168
+}
+
+const recentActivity = [
+  {
+    time: "Today, 10:30 AM",
+    action: "Completed Business Vocabulary set",
+    count: 15
+  },
+  {
+    time: "Yesterday, 4:15 PM",
+    action: "Reviewed Office Communication words",
+    count: 20
+  },
+  {
+    time: "Yesterday, 9:20 AM",
+    action: "Learned new Marketing terms",
+    count: 12
+  },
+  {
+    time: "Apr 12, 2:45 PM",
+    action: "Practiced Interview Vocabulary",
+    count: 25
+  }
+]
+
 export default function DashboardPage() {
   return (
     <>
@@ -22,9 +80,9 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex items-center">
               <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
-              <div className="text-3xl font-bold">1,248</div>
+              <div className="text-3xl font-bold">{wordsLearned.total}</div>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">+24 words this week</p>
+            <p className="mt-2 text-xs text-muted-foreground">+{wordsLearned.increaseThisWeek} words this week</p>
           </CardContent>
         </Card>
         <Card>
@@ -34,9 +92,9 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex items-center">
               <Calendar className="mr-2 h-5 w-5 text-blue-500" />
-              <div className="text-3xl font-bold">42</div>
+              <div className="text-3xl font-bold">{wordsDueToday.total}</div>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">15 new, 27 reviews</p>
+            <p className="mt-2 text-xs text-muted-foreground">{wordsDueToday.new} new, {wordsDueToday.reviews} reviews</p>
           </CardContent>
         </Card>
         <Card>
@@ -46,7 +104,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex items-center">
               <Flame className="mr-2 h-5 w-5 text-orange-500" />
-              <div className="text-3xl font-bold">16</div>
+              <div className="text-3xl font-bold">{learningStreak.days}</div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">days in a row</p>
           </CardContent>
@@ -62,12 +120,12 @@ export default function DashboardPage() {
           <CardContent>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium">Daily progress</span>
-              <span className="text-sm font-medium">18/30 words</span>
+              <span className="text-sm font-medium">{todayGoal.completed}/{todayGoal.target} words</span>
             </div>
-            <Progress value={60} className="h-2" />
+            <Progress value={todayGoal.progressPercent} className="h-2" />
             <div className="mt-6 flex items-center">
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Estimated time remaining: 15 minutes</span>
+              <span className="text-sm text-muted-foreground">Estimated time remaining: {todayGoal.estimatedTimeMinutes} minutes</span>
             </div>
           </CardContent>
           <CardFooter>
@@ -85,16 +143,16 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex h-[120px] items-end justify-between gap-2">
-              {[65, 40, 85, 30, 55, 95, 75].map((height, i) => (
+              {weeklyOverview.dailyProgress.map((day, i) => (
                 <div key={i} className="relative flex w-full flex-col items-center">
-                  <div className="w-full rounded-t bg-primary" style={{ height: `${height}%` }}></div>
-                  <span className="mt-2 text-xs">{["M", "T", "W", "T", "F", "S", "S"][i]}</span>
+                  <div className="w-full rounded-t bg-primary" style={{ height: `${day.percent}%` }}></div>
+                  <span className="mt-2 text-xs">{day.day}</span>
                 </div>
               ))}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <div className="text-sm text-muted-foreground">Total this week: 168 words</div>
+            <div className="text-sm text-muted-foreground">Total this week: {weeklyOverview.totalWords} words</div>
             <Button variant="outline" size="sm">
               View Details
             </Button>
@@ -110,12 +168,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                { time: "Today, 10:30 AM", action: "Completed Business Vocabulary set", count: 15 },
-                { time: "Yesterday, 4:15 PM", action: "Reviewed Office Communication words", count: 20 },
-                { time: "Yesterday, 9:20 AM", action: "Learned new Marketing terms", count: 12 },
-                { time: "Apr 12, 2:45 PM", action: "Practiced Interview Vocabulary", count: 25 },
-              ].map((item, i) => (
+              {recentActivity.map((item, i) => (
                 <div key={i} className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
                     <div className="rounded-full bg-primary/10 p-2">
@@ -141,4 +194,3 @@ export default function DashboardPage() {
     </>
   )
 }
-
