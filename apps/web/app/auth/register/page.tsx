@@ -17,7 +17,7 @@ import { HttpStatus, RegisterRequest } from "@workspace/contracts"
 import { useMutation } from "@tanstack/react-query"
 import { api } from "@/lib/api"
 import { toast } from "sonner"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REFRESH_TOKEN } from "@/lib/constants"
 import { setCookie } from "cookies-next"
 import { isDev } from "@/lib/env"
@@ -35,6 +35,7 @@ const formSchema = RegisterRequest.extend({
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -62,7 +63,8 @@ export default function RegisterPage() {
           await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { path: '/' });
           await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { path: '/' });
           toast("Account created successfully")
-          redirect("/")
+          router.push('/');
+          return;
         case HttpStatus.UNPROCESSABLE_ENTITY:
           for (const issue of response.body.issues) {
             const path = issue.path.join('.')
