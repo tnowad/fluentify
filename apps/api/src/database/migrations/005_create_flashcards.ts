@@ -17,6 +17,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('ease_factor', 'float8', col => col.notNull().defaultTo(2.5))
     .addColumn('interval_days', 'int4', col => col.notNull().defaultTo(0))
     .addColumn('repetitions', 'int4', col => col.notNull().defaultTo(0))
+    .addColumn('ebisu_model', 'jsonb')
     .addForeignKeyConstraint(
       'flashcards_user_id_fkey',
       ['user_id'],
