@@ -17,7 +17,7 @@ import { sql } from 'kysely';
 export class TopicsController {
   private readonly logger = new Logger(TopicsController.name);
 
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService) {}
 
   @TsRestHandler(topicContract)
   @UseGuards(JwtAuthGuard)
@@ -67,11 +67,12 @@ export class TopicsController {
 
         if (!deleted) {
           throw new TsRestException(topicContract.deleteTopic, {
-            status: HttpStatus.NOT_FOUND, body: {
-              error: "Not Found",
-              message: "Topic not found or not owned by user",
-            }
-          })
+            status: HttpStatus.NOT_FOUND,
+            body: {
+              error: 'Not Found',
+              message: 'Topic not found or not owned by user',
+            },
+          });
         }
 
         return { status: HttpStatus.NO_CONTENT, body: null };
@@ -83,10 +84,7 @@ export class TopicsController {
           .selectAll()
           .where('id', '=', params.id)
           .where((eb) =>
-            eb.or([
-              eb('is_public', '=', true),
-              eb('created_by', '=', user.id),
-            ])
+            eb.or([eb('is_public', '=', true), eb('created_by', '=', user.id)]),
           )
           .executeTakeFirst();
 
@@ -134,9 +132,8 @@ export class TopicsController {
           .limit(limit)
           .execute();
 
-        const nextCursor = items.length === limit
-          ? items[items.length - 1].id
-          : null;
+        const nextCursor =
+          items.length === limit ? items[items.length - 1].id : null;
 
         return {
           status: HttpStatus.OK,
@@ -174,9 +171,8 @@ export class TopicsController {
           .limit(limit)
           .execute();
 
-        const nextCursor = items.length === limit
-          ? items[items.length - 1].id
-          : null;
+        const nextCursor =
+          items.length === limit ? items[items.length - 1].id : null;
 
         return {
           status: HttpStatus.OK,
@@ -239,17 +235,17 @@ export class TopicsController {
           .selectAll()
           .where('id', '=', params.id)
           .where((eb) =>
-            eb.or([
-              eb('is_public', '=', true),
-              eb('created_by', '=', user.id),
-            ])
+            eb.or([eb('is_public', '=', true), eb('created_by', '=', user.id)]),
           )
           .executeTakeFirst();
 
         if (!original) {
           throw new TsRestException(topicContract.cloneTopic, {
             status: HttpStatus.NOT_FOUND,
-            body: { error: 'Not Found', message: 'Topic not found or access denied' },
+            body: {
+              error: 'Not Found',
+              message: 'Topic not found or access denied',
+            },
           });
         }
 
@@ -261,7 +257,7 @@ export class TopicsController {
             description: original.description,
             is_public: false,
             created_by: user.id,
-            created_at: sql`now()`
+            created_at: sql`now()`,
           })
           .returningAll()
           .executeTakeFirstOrThrow();
@@ -274,18 +270,21 @@ export class TopicsController {
           .execute();
 
         for (const card of flashcards) {
-          await this.db.insertInto('flashcards').values({
-            id: randomUUID(),
-            user_id: user.id,
-            word_id: card.word_id,
-            topic_id: clonedTopic.id,
-            status: 'new',
-            next_review_at: new Date(),
-            last_reviewed_at: null,
-            ease_factor: 2.5,
-            interval_days: 0,
-            repetitions: 0,
-          }).execute();
+          await this.db
+            .insertInto('flashcards')
+            .values({
+              id: randomUUID(),
+              user_id: user.id,
+              word_id: card.word_id,
+              topic_id: clonedTopic.id,
+              status: 'new',
+              next_review_at: new Date(),
+              last_reviewed_at: null,
+              ease_factor: 2.5,
+              interval_days: 0,
+              repetitions: 0,
+            })
+            .execute();
         }
 
         return {
@@ -313,7 +312,10 @@ export class TopicsController {
         if (!topic || (!topic.is_public && topic.created_by !== user.id)) {
           throw new TsRestException(topicContract.listTopicFlashcards, {
             status: HttpStatus.NOT_FOUND,
-            body: { error: 'Not Found', message: 'Topic not found or access denied' },
+            body: {
+              error: 'Not Found',
+              message: 'Topic not found or access denied',
+            },
           });
         }
 
@@ -332,9 +334,10 @@ export class TopicsController {
           .limit(limit)
           .execute();
 
-        const nextCursor = flashcards.length === limit
-          ? flashcards[flashcards.length - 1].id
-          : null;
+        const nextCursor =
+          flashcards.length === limit
+            ? flashcards[flashcards.length - 1].id
+            : null;
 
         return {
           status: HttpStatus.OK,
@@ -358,7 +361,9 @@ export class TopicsController {
 
       uploadExcel: () => {
         // TODO: Implement file upload + parse logic (e.g., xlsx or csv)
-        throw new NotImplementedException('Excel upload is not implemented yet.');
+        throw new NotImplementedException(
+          'Excel upload is not implemented yet.',
+        );
       },
     });
   }

@@ -1,6 +1,11 @@
 import 'dotenv/config';
 import { promises as fs } from 'fs';
-import { Kysely, Migrator, PostgresDialect, FileMigrationProvider } from 'kysely';
+import {
+  Kysely,
+  Migrator,
+  PostgresDialect,
+  FileMigrationProvider,
+} from 'kysely';
 import * as path from 'path';
 import { Pool } from 'pg';
 import { DB } from './schema';
@@ -22,7 +27,7 @@ async function createDbInstance(): Promise<Kysely<DB>> {
 
 /**
  * Run migrations in the specified direction and steps.
- * 
+ *
  * @param migrator Migrator instance.
  * @param direction Direction of migration ('up' or 'down').
  * @param steps Number of steps to run the migration.
@@ -30,12 +35,13 @@ async function createDbInstance(): Promise<Kysely<DB>> {
 async function runMigration(
   migrator: Migrator,
   direction: 'up' | 'down',
-  steps: number = 1
+  steps: number = 1,
 ): Promise<void> {
   for (let i = 0; i < steps; i++) {
-    const { error, results } = direction === 'down'
-      ? await migrator.migrateDown()
-      : await migrator.migrateToLatest();
+    const { error, results } =
+      direction === 'down'
+        ? await migrator.migrateDown()
+        : await migrator.migrateToLatest();
 
     if (error) {
       if (error instanceof Error) {
@@ -73,7 +79,9 @@ async function resetMigrations(migrator: Migrator): Promise<void> {
     }
 
     if (!results?.length || results[0].status === 'NotExecuted') break;
-    console.log(`↩️  Reset migration: "${results[0].migrationName}" rolled back.`);
+    console.log(
+      `↩️  Reset migration: "${results[0].migrationName}" rolled back.`,
+    );
   }
 }
 
@@ -93,7 +101,7 @@ Commands:
 
 /**
  * Handles the migration command based on the argument provided.
- * 
+ *
  * @param db The Kysely database instance.
  * @param migrator The Migrator instance.
  * @param command The migration command to execute.
@@ -101,7 +109,7 @@ Commands:
 async function handleMigrationCommand(
   db: Kysely<DB>,
   migrator: Migrator,
-  command: string
+  command: string,
 ): Promise<void> {
   switch (command) {
     case 'latest':
@@ -120,11 +128,14 @@ async function handleMigrationCommand(
 
     default:
       if (command.startsWith('down')) {
-        const steps = command === 'down' ? 1 : parseInt(command.split(':')[1] || '1', 10);
+        const steps =
+          command === 'down' ? 1 : parseInt(command.split(':')[1] || '1', 10);
         console.log(`Rolling back ${steps} migration(s)...`);
         await runMigration(migrator, 'down', steps);
       } else {
-        console.error(`❓ Unknown command "${command}". Use "help" for available commands.`);
+        console.error(
+          `❓ Unknown command "${command}". Use "help" for available commands.`,
+        );
         process.exit(1);
       }
       break;

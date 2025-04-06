@@ -1,26 +1,26 @@
-import { initContract } from '@ts-rest/core';
-import { z } from 'zod';
+import { initContract } from "@ts-rest/core";
+import { z } from "zod";
 import {
   FlashcardSchema,
   CreateFlashcardRequest,
   UpdateFlashcardRequest,
-} from './flashcard.schemas';
+} from "./flashcard.schemas";
 import {
   CursorPaginationQuery,
   CursorPaginationResponse,
   UnauthorizedResponse,
   NotFoundResponse,
   ValidationErrorResponse,
-} from '../common/responses';
-import { HttpStatus } from 'src/common/http-status';
+} from "../common/responses";
+import { HttpStatus } from "src/common/http-status";
 
 const c = initContract();
 
 export const flashcardContract = c.router({
   listMyFlashcards: {
-    method: 'GET',
-    path: '/flashcards',
-    summary: 'List current user flashcards with pagination',
+    method: "GET",
+    path: "/flashcards",
+    summary: "List current user flashcards with pagination",
     query: CursorPaginationQuery.extend({
       topicId: z.string().uuid().optional(),
     }),
@@ -31,9 +31,9 @@ export const flashcardContract = c.router({
   },
 
   getFlashcardById: {
-    method: 'GET',
-    path: '/flashcards/:id',
-    summary: 'Get flashcard detail',
+    method: "GET",
+    path: "/flashcards/:id",
+    summary: "Get flashcard detail",
     responses: {
       [HttpStatus.OK]: FlashcardSchema,
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
@@ -41,9 +41,9 @@ export const flashcardContract = c.router({
   },
 
   createFlashcard: {
-    method: 'POST',
-    path: '/flashcards',
-    summary: 'Create a flashcard',
+    method: "POST",
+    path: "/flashcards",
+    summary: "Create a flashcard",
     body: CreateFlashcardRequest,
     responses: {
       [HttpStatus.CREATED]: FlashcardSchema,
@@ -53,9 +53,9 @@ export const flashcardContract = c.router({
   },
 
   updateFlashcard: {
-    method: 'PUT',
-    path: '/flashcards/:id',
-    summary: 'Update flashcard',
+    method: "PUT",
+    path: "/flashcards/:id",
+    summary: "Update flashcard",
     body: UpdateFlashcardRequest,
     responses: {
       [HttpStatus.OK]: FlashcardSchema,
@@ -65,9 +65,9 @@ export const flashcardContract = c.router({
   },
 
   deleteFlashcard: {
-    method: 'DELETE',
-    path: '/flashcards/:id',
-    summary: 'Delete flashcard',
+    method: "DELETE",
+    path: "/flashcards/:id",
+    summary: "Delete flashcard",
     responses: {
       [HttpStatus.NO_CONTENT]: z.null(),
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
@@ -76,9 +76,9 @@ export const flashcardContract = c.router({
   },
 
   getDueFlashcards: {
-    method: 'GET',
-    path: '/flashcards/due',
-    summary: 'Get flashcards due for review',
+    method: "GET",
+    path: "/flashcards/due",
+    summary: "Get flashcards due for review",
     query: z.object({
       topicId: z.string().uuid().optional(),
       limit: z.coerce.number().min(1).max(100).default(20),
@@ -89,15 +89,15 @@ export const flashcardContract = c.router({
         items: z.array(FlashcardSchema),
         nextCursor: z.string().uuid().nullable(),
       }),
-    }
+    },
   },
 
   submitReview: {
-    method: 'POST',
-    path: '/flashcards/:id/review',
-    summary: 'Submit flashcard review result',
+    method: "POST",
+    path: "/flashcards/:id/review",
+    summary: "Submit flashcard review result",
     body: z.object({
-      rating: z.enum(['forgot', 'hard', 'easy']),
+      rating: z.enum(["forgot", "hard", "easy"]),
       responseTimeMs: z.number().int().nonnegative(),
     }),
     responses: {
@@ -105,5 +105,5 @@ export const flashcardContract = c.router({
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
       [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
-  }
+  },
 });

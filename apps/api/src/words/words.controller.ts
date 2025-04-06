@@ -28,7 +28,7 @@ export type DictionaryApiResponse = {
 export class WordsController {
   private readonly logger = new Logger(WordsController.name);
 
-  constructor(private readonly db: DatabaseService) { }
+  constructor(private readonly db: DatabaseService) {}
 
   @TsRestHandler(wordContract)
   handler() {

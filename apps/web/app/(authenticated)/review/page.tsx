@@ -1,54 +1,58 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ArrowLeft, Play, ThumbsDown, ThumbsUp, X } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import { ArrowLeft, Play, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardFooter } from "@workspace/ui/components/card"
-import { Progress } from "@workspace/ui/components/progress"
+import { Button } from "@workspace/ui/components/button";
+import { Card, CardContent, CardFooter } from "@workspace/ui/components/card";
+import { Progress } from "@workspace/ui/components/progress";
 
 export default function FlashcardReview() {
   // State for tracking what's revealed
-  const [showDefinition, setShowDefinition] = useState(false)
-  const [showExample, setShowExample] = useState(false)
-  const [answered, setAnswered] = useState(false)
+  const [showDefinition, setShowDefinition] = useState(false);
+  const [showExample, setShowExample] = useState(false);
+  const [answered, setAnswered] = useState(false);
 
   // Sample flashcard data
   const flashcard = {
     word: "Expedite",
     definition: "To make something happen more quickly",
-    example: "We need to expedite the delivery of these documents before the deadline.",
+    example:
+      "We need to expedite the delivery of these documents before the deadline.",
     partOfSpeech: "verb",
     progress: 65,
-  }
+  };
 
   // Reset the card state for the next card
   const handleNextCard = () => {
-    setShowDefinition(false)
-    setShowExample(false)
-    setAnswered(false)
+    setShowDefinition(false);
+    setShowExample(false);
+    setAnswered(false);
     // In a real app, you would load the next card here
-  }
+  };
 
   // Handle rating selection
   const handleRating = (rating: string) => {
-    setAnswered(true)
+    setAnswered(true);
     // In a real app, you would save the rating here
-    console.log(`User rated card as: ${rating}`)
-  }
+    console.log(`User rated card as: ${rating}`);
+  };
 
   // Handle pronunciation
   const handlePronunciation = () => {
     // In a real app, you would play the pronunciation audio here
-    console.log("Playing pronunciation")
-  }
+    console.log("Playing pronunciation");
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-muted/40">
       {/* Header */}
       <header className="sticky top-0 z-10 flex items-center justify-between border-b bg-background px-4 py-3">
-        <Link href="/dashboard" className="flex items-center gap-1 text-muted-foreground">
+        <Link
+          href="/dashboard"
+          className="flex items-center gap-1 text-muted-foreground"
+        >
           <ArrowLeft className="h-4 w-4" />
           <span>Back</span>
         </Link>
@@ -68,7 +72,12 @@ export default function FlashcardReview() {
               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                 {flashcard.partOfSpeech}
               </span>
-              <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" onClick={handlePronunciation}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={handlePronunciation}
+              >
                 <Play className="h-4 w-4" />
                 <span className="sr-only">Play pronunciation</span>
               </Button>
@@ -76,12 +85,17 @@ export default function FlashcardReview() {
 
             {/* Word */}
             <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{flashcard.word}</h1>
+              <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
+                {flashcard.word}
+              </h1>
             </div>
 
             {/* Definition */}
             {!showDefinition ? (
-              <Button className="mb-4 w-full" onClick={() => setShowDefinition(true)}>
+              <Button
+                className="mb-4 w-full"
+                onClick={() => setShowDefinition(true)}
+              >
                 Show Definition
               </Button>
             ) : (
@@ -140,6 +154,5 @@ export default function FlashcardReview() {
         </Card>
       </main>
     </div>
-  )
+  );
 }
-

@@ -1,94 +1,116 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useMutation } from "@tanstack/react-query"
-import { BookOpen, Eye, EyeOff, Mail } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { BookOpen, Eye, EyeOff, Mail } from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@workspace/ui/components/form"
-import { Input } from "@workspace/ui/components/input"
-import { Checkbox } from "@workspace/ui/components/checkbox"
-import { Separator } from "@workspace/ui/components/separator"
-import { api } from "@/lib/api"
-import { HttpStatus, LoginRequest } from "@workspace/contracts"
-import { COOKIE_KEY_ACCESS_TOKEN, COOKIE_KEY_REFRESH_TOKEN } from "@/lib/constants"
-import { setCookie } from "cookies-next"
-import { toast } from "sonner"
-import { redirect, useRouter } from "next/navigation"
-import { isDev } from "@/lib/env"
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form";
+import { Input } from "@workspace/ui/components/input";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import { Separator } from "@workspace/ui/components/separator";
+import { api } from "@/lib/api";
+import { HttpStatus, LoginRequest } from "@workspace/contracts";
+import {
+  COOKIE_KEY_ACCESS_TOKEN,
+  COOKIE_KEY_REFRESH_TOKEN,
+} from "@/lib/constants";
+import { setCookie } from "cookies-next";
+import { toast } from "sonner";
+import { redirect, useRouter } from "next/navigation";
+import { isDev } from "@/lib/env";
 
-const formSchema =
-  LoginRequest.extend({
-    rememberMe: z.boolean().default(false),
-  })
+const formSchema = LoginRequest.extend({
+  rememberMe: z.boolean().default(false),
+});
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter();
 
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues:
-      isDev ? {
-        email: "user@fluentify.com",
-        password: "Password123",
-        rememberMe: true,
-      } : {
-        email: "",
-        password: "",
-        rememberMe: false,
-      },
-  })
+    defaultValues: isDev
+      ? {
+          email: "user@fluentify.com",
+          password: "Password123",
+          rememberMe: true,
+        }
+      : {
+          email: "",
+          password: "",
+          rememberMe: false,
+        },
+  });
 
   const mutation = useMutation({
-    mutationFn: (data: z.infer<typeof formSchema>) => api.auth.login({ body: data }),
+    mutationFn: (data: z.infer<typeof formSchema>) =>
+      api.auth.login({ body: data }),
     onSuccess: async (response) => {
       switch (response.status) {
         case HttpStatus.OK:
           const { accessToken, refreshToken } = response.body;
-          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { httpOnly: false });
-          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { httpOnly: false });
-          toast("Login successful")
-          router.push("/")
+          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, {
+            httpOnly: false,
+          });
+          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, {
+            httpOnly: false,
+          });
+          toast("Login successful");
+          router.push("/");
           break;
         case HttpStatus.UNAUTHORIZED:
           form.setError("root", {
             type: String(response.status),
-            message: response.body.message
-          })
+            message: response.body.message,
+          });
           break;
         case HttpStatus.UNPROCESSABLE_ENTITY:
           for (const issue of response.body.issues) {
-            const path = issue.path.join('.');
+            const path = issue.path.join(".");
             form.setError(path as any, {
               type: String(response.status),
               message: issue.message,
-            })
+            });
           }
           break;
         default:
           form.setError("root", {
             type: String(response.status),
             message: "Login failed",
-          })
+          });
       }
     },
     onError: (err: any) => {
       form.setError("email", {
         type: "server",
         message: err?.response?.data?.message ?? "Login failed",
-      })
+      });
     },
-  })
+  });
 
-  const onSubmit = form.handleSubmit(data => {
-    mutation.mutate(data)
-  })
+  const onSubmit = form.handleSubmit((data) => {
+    mutation.mutate(data);
+  });
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
@@ -100,7 +122,9 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
+          <CardDescription className="text-center">
+            Enter your credentials to access your account
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -114,7 +138,12 @@ export default function LoginPage() {
                     <FormControl>
                       <div className="relative">
                         <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input {...field} type="email" placeholder="name@example.com" className="pl-10" />
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="name@example.com"
+                          className="pl-10"
+                        />
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -128,13 +157,20 @@ export default function LoginPage() {
                   <FormItem>
                     <div className="flex items-center justify-between">
                       <FormLabel>Password</FormLabel>
-                      <Link href="/auth/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-xs text-muted-foreground hover:text-primary"
+                      >
                         Forgot password?
                       </Link>
                     </div>
                     <FormControl>
                       <div className="relative">
-                        <Input {...field} type={showPassword ? "text" : "password"} placeholder="••••••••" />
+                        <Input
+                          {...field}
+                          type={showPassword ? "text" : "password"}
+                          placeholder="••••••••"
+                        />
                         <Button
                           type="button"
                           variant="ghost"
@@ -142,7 +178,11 @@ export default function LoginPage() {
                           className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                           onClick={() => setShowPassword(!showPassword)}
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                           <span className="sr-only">Toggle Password</span>
                         </Button>
                       </div>
@@ -157,13 +197,22 @@ export default function LoginPage() {
                 render={({ field }) => (
                   <FormItem className="flex items-center space-x-2">
                     <FormControl>
-                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
                     </FormControl>
-                    <FormLabel className="text-sm font-normal">Remember me for 30 days</FormLabel>
+                    <FormLabel className="text-sm font-normal">
+                      Remember me for 30 days
+                    </FormLabel>
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={mutation.isPending}>
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={mutation.isPending}
+              >
                 Sign in
               </Button>
               {form.formState.errors.root && (
@@ -179,7 +228,9 @@ export default function LoginPage() {
               <Separator className="w-full" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-card px-2 text-muted-foreground">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -209,14 +260,19 @@ export default function LoginPage() {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Don’t have an account?{" "}
-            <Link href="/auth/register" className="font-medium text-primary hover:underline">
+            <Link
+              href="/auth/register"
+              className="font-medium text-primary hover:underline"
+            >
               Sign up
             </Link>
           </p>
         </CardFooter>
       </Card>
 
-      <p className="mt-4 text-xs text-muted-foreground">&copy; 2023 TOEIC Master. All rights reserved.</p>
+      <p className="mt-4 text-xs text-muted-foreground">
+        &copy; 2023 TOEIC Master. All rights reserved.
+      </p>
     </div>
-  )
+  );
 }

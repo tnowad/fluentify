@@ -14,7 +14,11 @@ export class GeminiService {
     this.genAI = new GoogleGenerativeAI(apiKey);
   }
 
-  private async runPrompt<T>(promptFn: (input: string) => string, schema: ZodType<T>, input: string): Promise<T> {
+  private async runPrompt<T>(
+    promptFn: (input: string) => string,
+    schema: ZodType<T>,
+    input: string,
+  ): Promise<T> {
     const prompt = promptFn(input);
     const model = this.genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
     const { response } = await model.generateContent(prompt);
@@ -24,38 +28,74 @@ export class GeminiService {
   }
 
   analyzeCommonErrors(input: string) {
-    return this.runPrompt(Prompts.analyzeCommonErrorsPrompt, Schemas.analyzeCommonErrorsPromptSchema, input);
+    return this.runPrompt(
+      Prompts.analyzeCommonErrorsPrompt,
+      Schemas.analyzeCommonErrorsPromptSchema,
+      input,
+    );
   }
 
   analysisPrompts(input: string) {
-    return this.runPrompt(Prompts.analysisPrompts, Schemas.analysisPromptSchema, input);
+    return this.runPrompt(
+      Prompts.analysisPrompts,
+      Schemas.analysisPromptSchema,
+      input,
+    );
   }
 
   suggestSynonyms(input: string) {
-    return this.runPrompt(Prompts.suggestSynonymsPrompt, Schemas.suggestSynonymsPromptSchema, input);
+    return this.runPrompt(
+      Prompts.suggestSynonymsPrompt,
+      Schemas.suggestSynonymsPromptSchema,
+      input,
+    );
   }
 
   analyzeSentenceStructure(input: string) {
-    return this.runPrompt(Prompts.analyzeSentenceStructurePrompt, Schemas.analyzeSentenceStructurePromptSchema, input);
+    return this.runPrompt(
+      Prompts.analyzeSentenceStructurePrompt,
+      Schemas.analyzeSentenceStructurePromptSchema,
+      input,
+    );
   }
 
   translateWithContext(input: string) {
-    return this.runPrompt(Prompts.translateWithContextPrompt, Schemas.translateWithContextPromptSchema, input);
+    return this.runPrompt(
+      Prompts.translateWithContextPrompt,
+      Schemas.translateWithContextPromptSchema,
+      input,
+    );
   }
 
   identifyIdiom(input: string) {
-    return this.runPrompt(Prompts.identifyIdiomPrompt, Schemas.identifyIdiomPromptSchema, input);
+    return this.runPrompt(
+      Prompts.identifyIdiomPrompt,
+      Schemas.identifyIdiomPromptSchema,
+      input,
+    );
   }
 
   provideToneVariations(input: string) {
-    return this.runPrompt(Prompts.provideToneVariationsPrompt, Schemas.provideToneVariationsPromptSchema, input);
+    return this.runPrompt(
+      Prompts.provideToneVariationsPrompt,
+      Schemas.provideToneVariationsPromptSchema,
+      input,
+    );
   }
 
   explainGrammarRule(input: string) {
-    return this.runPrompt(Prompts.explainGrammarRulePrompt, Schemas.explainGrammarRulePromptSchema, input);
+    return this.runPrompt(
+      Prompts.explainGrammarRulePrompt,
+      Schemas.explainGrammarRulePromptSchema,
+      input,
+    );
   }
 
   identifyMood(input: string) {
-    return this.runPrompt(Prompts.identifyMoodPrompt, Schemas.identifyMoodPromptSchema, input);
+    return this.runPrompt(
+      Prompts.identifyMoodPrompt,
+      Schemas.identifyMoodPromptSchema,
+      input,
+    );
   }
 }

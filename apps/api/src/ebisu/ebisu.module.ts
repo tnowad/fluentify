@@ -3,6 +3,6 @@ import { EbisuService } from './ebisu.service';
 
 @Module({
   providers: [EbisuService],
-  exports: [EbisuService]
+  exports: [EbisuService],
 })
-export class EbisuModule { }
+export class EbisuModule {}

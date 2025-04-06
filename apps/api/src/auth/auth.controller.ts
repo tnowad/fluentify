@@ -28,7 +28,7 @@ export class AuthController {
   constructor(
     private readonly db: DatabaseService,
     private readonly jwtService: JwtService,
-  ) { }
+  ) {}
 
   @TsRestHandler(authContract)
   handler() {

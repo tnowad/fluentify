@@ -8,9 +8,7 @@
     "target": "ES2021",
     "outDir": "./dist",
     "incremental": true,
-    "include": [
-      "**/*.d.ts"
-    ]
+    "include": ["**/*.d.ts"]
   },
   "extends": "../../packages/tsconfig/base.json"
 }

@@ -1,13 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { BookOpen, Check, ChevronDown, Clock, Filter, Search, SortAsc, X } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import {
+  BookOpen,
+  Check,
+  ChevronDown,
+  Clock,
+  Filter,
+  Search,
+  SortAsc,
+  X,
+} from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardFooter } from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
-import { Progress } from "@workspace/ui/components/progress"
+import { Button } from "@workspace/ui/components/button";
+import { Card, CardContent, CardFooter } from "@workspace/ui/components/card";
+import { Input } from "@workspace/ui/components/input";
+import { Progress } from "@workspace/ui/components/progress";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -15,10 +24,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
-import { Badge } from "@workspace/ui/components/badge"
-import { Separator } from "@workspace/ui/components/separator"
+} from "@workspace/ui/components/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { Badge } from "@workspace/ui/components/badge";
+import { Separator } from "@workspace/ui/components/separator";
 
 // Sample word data
 const wordList = [
@@ -118,17 +133,25 @@ const wordList = [
     status: "mastered",
     topics: ["Travel"],
   },
-]
+];
 
 // Available topics for filtering
-const allTopics = ["Business", "Communication", "Management", "Travel", "Hospitality", "Legal", "Finance"]
+const allTopics = [
+  "Business",
+  "Communication",
+  "Management",
+  "Travel",
+  "Hospitality",
+  "Legal",
+  "Finance",
+];
 
 export default function WordListPage() {
   // State for filters
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [selectedTopics, setSelectedTopics] = useState<string[]>([])
-  const [sortBy, setSortBy] = useState("alphabetical")
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [sortBy, setSortBy] = useState("alphabetical");
 
   // Filter and sort words based on current filters
   const filteredWords = wordList
@@ -136,46 +159,48 @@ export default function WordListPage() {
       // Filter by search query
       const matchesSearch =
         word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        word.definition.toLowerCase().includes(searchQuery.toLowerCase())
+        word.definition.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Filter by status
       const matchesStatus =
         statusFilter === "all" ||
         (statusFilter === "in-progress" && word.status === "in-progress") ||
-        (statusFilter === "mastered" && word.status === "mastered")
+        (statusFilter === "mastered" && word.status === "mastered");
 
       // Filter by topics
-      const matchesTopics = selectedTopics.length === 0 || word.topics.some((topic) => selectedTopics.includes(topic))
+      const matchesTopics =
+        selectedTopics.length === 0 ||
+        word.topics.some((topic) => selectedTopics.includes(topic));
 
-      return matchesSearch && matchesStatus && matchesTopics
+      return matchesSearch && matchesStatus && matchesTopics;
     })
     .sort((a, b) => {
       if (sortBy === "alphabetical") {
-        return a.word.localeCompare(b.word)
+        return a.word.localeCompare(b.word);
       } else if (sortBy === "progress-asc") {
-        return a.progress - b.progress
+        return a.progress - b.progress;
       } else if (sortBy === "progress-desc") {
-        return b.progress - a.progress
+        return b.progress - a.progress;
       }
-      return 0
-    })
+      return 0;
+    });
 
   // Toggle topic selection
   const toggleTopic = (topic: string) => {
     if (selectedTopics.includes(topic)) {
-      setSelectedTopics(selectedTopics.filter((t) => t !== topic))
+      setSelectedTopics(selectedTopics.filter((t) => t !== topic));
     } else {
-      setSelectedTopics([...selectedTopics, topic])
+      setSelectedTopics([...selectedTopics, topic]);
     }
-  }
+  };
 
   // Clear all filters
   const clearFilters = () => {
-    setSearchQuery("")
-    setStatusFilter("all")
-    setSelectedTopics([])
-    setSortBy("alphabetical")
-  }
+    setSearchQuery("");
+    setStatusFilter("all");
+    setSelectedTopics([]);
+    setSortBy("alphabetical");
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -183,7 +208,9 @@ export default function WordListPage() {
       <header className="sticky top-0 z-10 border-b bg-background">
         <div className="container py-4">
           <h1 className="text-2xl font-bold">Word List</h1>
-          <p className="text-sm text-muted-foreground">Browse and filter your TOEIC vocabulary</p>
+          <p className="text-sm text-muted-foreground">
+            Browse and filter your TOEIC vocabulary
+          </p>
         </div>
       </header>
 
@@ -231,7 +258,10 @@ export default function WordListPage() {
                   <Filter className="h-4 w-4" />
                   Topics
                   {selectedTopics.length > 0 && (
-                    <Badge variant="secondary" className="ml-1 rounded-full px-1.5 py-0 text-xs">
+                    <Badge
+                      variant="secondary"
+                      className="ml-1 rounded-full px-1.5 py-0 text-xs"
+                    >
                       {selectedTopics.length}
                     </Badge>
                   )}
@@ -261,14 +291,25 @@ export default function WordListPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="alphabetical">Alphabetical</SelectItem>
-                <SelectItem value="progress-asc">Progress (Low-High)</SelectItem>
-                <SelectItem value="progress-desc">Progress (High-Low)</SelectItem>
+                <SelectItem value="progress-asc">
+                  Progress (Low-High)
+                </SelectItem>
+                <SelectItem value="progress-desc">
+                  Progress (High-Low)
+                </SelectItem>
               </SelectContent>
             </Select>
 
             {/* Clear filters button - only show if filters are applied */}
-            {(searchQuery || statusFilter !== "all" || selectedTopics.length > 0 || sortBy !== "alphabetical") && (
-              <Button variant="ghost" onClick={clearFilters} className="ml-auto">
+            {(searchQuery ||
+              statusFilter !== "all" ||
+              selectedTopics.length > 0 ||
+              sortBy !== "alphabetical") && (
+              <Button
+                variant="ghost"
+                onClick={clearFilters}
+                className="ml-auto"
+              >
                 <X className="mr-2 h-4 w-4" />
                 Clear Filters
               </Button>
@@ -279,9 +320,18 @@ export default function WordListPage() {
           {selectedTopics.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {selectedTopics.map((topic) => (
-                <Badge key={topic} variant="secondary" className="flex items-center gap-1">
+                <Badge
+                  key={topic}
+                  variant="secondary"
+                  className="flex items-center gap-1"
+                >
                   {topic}
-                  <Button variant="ghost" size="icon" className="h-4 w-4 p-0" onClick={() => toggleTopic(topic)}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0"
+                    onClick={() => toggleTopic(topic)}
+                  >
                     <X className="h-3 w-3" />
                     <span className="sr-only">Remove {topic} filter</span>
                   </Button>
@@ -300,7 +350,11 @@ export default function WordListPage() {
         {filteredWords.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredWords.map((word) => (
-              <Link href={`/words/${word.word.toLowerCase()}`} key={word.id} className="block">
+              <Link
+                href={`/words/${word.word.toLowerCase()}`}
+                key={word.id}
+                className="block"
+              >
                 <Card className="h-full transition-all hover:shadow-md">
                   <CardContent className="p-4">
                     <div className="mb-2 flex items-start justify-between">
@@ -311,16 +365,25 @@ export default function WordListPage() {
                           Mastered
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="text-muted-foreground">
+                        <Badge
+                          variant="outline"
+                          className="text-muted-foreground"
+                        >
                           <Clock className="mr-1 h-3 w-3" />
                           In Progress
                         </Badge>
                       )}
                     </div>
-                    <p className="line-clamp-2 text-sm text-muted-foreground">{word.definition}</p>
+                    <p className="line-clamp-2 text-sm text-muted-foreground">
+                      {word.definition}
+                    </p>
                     <div className="mt-3 flex flex-wrap gap-1">
                       {word.topics.map((topic) => (
-                        <Badge key={topic} variant="secondary" className="text-xs">
+                        <Badge
+                          key={topic}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {topic}
                         </Badge>
                       ))}
@@ -344,7 +407,9 @@ export default function WordListPage() {
           <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
             <BookOpen className="mb-2 h-10 w-10 text-muted-foreground" />
             <h3 className="text-lg font-medium">No words found</h3>
-            <p className="text-sm text-muted-foreground">Try adjusting your filters or search query</p>
+            <p className="text-sm text-muted-foreground">
+              Try adjusting your filters or search query
+            </p>
             <Button variant="outline" onClick={clearFilters} className="mt-4">
               Clear All Filters
             </Button>
@@ -352,6 +417,5 @@ export default function WordListPage() {
         )}
       </main>
     </div>
-  )
+  );
 }
-

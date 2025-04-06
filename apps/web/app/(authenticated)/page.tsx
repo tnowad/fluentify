@@ -4,34 +4,41 @@ import {
   CheckCircle,
   ChevronRight,
   Clock,
-  Flame
-} from "lucide-react"
+  Flame,
+} from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Progress } from "@workspace/ui/components/progress"
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Progress } from "@workspace/ui/components/progress";
 
 const wordsLearned = {
   total: 1248,
-  increaseThisWeek: 24
-}
+  increaseThisWeek: 24,
+};
 
 const wordsDueToday = {
   total: 42,
   new: 15,
-  reviews: 27
-}
+  reviews: 27,
+};
 
 const learningStreak = {
-  days: 16
-}
+  days: 16,
+};
 
 const todayGoal = {
   completed: 18,
   target: 30,
   progressPercent: 60,
-  estimatedTimeMinutes: 15
-}
+  estimatedTimeMinutes: 15,
+};
 
 const weeklyOverview = {
   dailyProgress: [
@@ -41,33 +48,33 @@ const weeklyOverview = {
     { day: "T", percent: 30 },
     { day: "F", percent: 55 },
     { day: "S", percent: 95 },
-    { day: "S", percent: 75 }
+    { day: "S", percent: 75 },
   ],
-  totalWords: 168
-}
+  totalWords: 168,
+};
 
 const recentActivity = [
   {
     time: "Today, 10:30 AM",
     action: "Completed Business Vocabulary set",
-    count: 15
+    count: 15,
   },
   {
     time: "Yesterday, 4:15 PM",
     action: "Reviewed Office Communication words",
-    count: 20
+    count: 20,
   },
   {
     time: "Yesterday, 9:20 AM",
     action: "Learned new Marketing terms",
-    count: 12
+    count: 12,
   },
   {
     time: "Apr 12, 2:45 PM",
     action: "Practiced Interview Vocabulary",
-    count: 25
-  }
-]
+    count: 25,
+  },
+];
 
 export default function DashboardPage() {
   return (
@@ -75,31 +82,41 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Words Learned</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Words Learned
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
               <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
               <div className="text-3xl font-bold">{wordsLearned.total}</div>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">+{wordsLearned.increaseThisWeek} words this week</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              +{wordsLearned.increaseThisWeek} words this week
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Words Due Today</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Words Due Today
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
               <Calendar className="mr-2 h-5 w-5 text-blue-500" />
               <div className="text-3xl font-bold">{wordsDueToday.total}</div>
             </div>
-            <p className="mt-2 text-xs text-muted-foreground">{wordsDueToday.new} new, {wordsDueToday.reviews} reviews</p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              {wordsDueToday.new} new, {wordsDueToday.reviews} reviews
+            </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Learning Streak</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Learning Streak
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center">
@@ -120,12 +137,17 @@ export default function DashboardPage() {
           <CardContent>
             <div className="mb-2 flex items-center justify-between">
               <span className="text-sm font-medium">Daily progress</span>
-              <span className="text-sm font-medium">{todayGoal.completed}/{todayGoal.target} words</span>
+              <span className="text-sm font-medium">
+                {todayGoal.completed}/{todayGoal.target} words
+              </span>
             </div>
             <Progress value={todayGoal.progressPercent} className="h-2" />
             <div className="mt-6 flex items-center">
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Estimated time remaining: {todayGoal.estimatedTimeMinutes} minutes</span>
+              <span className="text-sm text-muted-foreground">
+                Estimated time remaining: {todayGoal.estimatedTimeMinutes}{" "}
+                minutes
+              </span>
             </div>
           </CardContent>
           <CardFooter>
@@ -144,15 +166,23 @@ export default function DashboardPage() {
           <CardContent>
             <div className="flex h-[120px] items-end justify-between gap-2">
               {weeklyOverview.dailyProgress.map((day, i) => (
-                <div key={i} className="relative flex w-full flex-col items-center">
-                  <div className="w-full rounded-t bg-primary" style={{ height: `${day.percent}%` }}></div>
+                <div
+                  key={i}
+                  className="relative flex w-full flex-col items-center"
+                >
+                  <div
+                    className="w-full rounded-t bg-primary"
+                    style={{ height: `${day.percent}%` }}
+                  ></div>
                   <span className="mt-2 text-xs">{day.day}</span>
                 </div>
               ))}
             </div>
           </CardContent>
           <CardFooter className="flex justify-between">
-            <div className="text-sm text-muted-foreground">Total this week: {weeklyOverview.totalWords} words</div>
+            <div className="text-sm text-muted-foreground">
+              Total this week: {weeklyOverview.totalWords} words
+            </div>
             <Button variant="outline" size="sm">
               View Details
             </Button>
@@ -176,7 +206,9 @@ export default function DashboardPage() {
                     </div>
                     <div>
                       <p className="font-medium">{item.action}</p>
-                      <p className="text-sm text-muted-foreground">{item.time}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.time}
+                      </p>
                     </div>
                   </div>
                   <div className="text-sm font-medium">{item.count} words</div>
@@ -192,5 +224,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </>
-  )
+  );
 }

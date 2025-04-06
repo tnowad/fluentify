@@ -1,0 +1,66 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+max_line_length = 80
+
+# All TypeScript files: .ts, .tsx, .d.ts, .mts, .cts
+[*.{ts,tsx,d.ts,mts,cts}]
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# JavaScript
+[*.{js,mjs,cjs}]
+indent_size = 2
+
+# JSON & JSONC
+[*.{json,jsonc}]
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = false
+
+# YAML
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown
+[*.md]
+trim_trailing_whitespace = false
+insert_final_newline = true
+indent_size = 2
+
+# HTML/CSS/SCSS/LESS
+[*.{html,css,scss,less}]
+indent_size = 2
+
+# Shell scripts
+[*.sh]
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+
+# TOML
+[*.toml]
+indent_size = 2
+
+# Lock files (skip formatting)
+[package-lock.json]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[pnpm-lock.yaml]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[package.json]
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = false

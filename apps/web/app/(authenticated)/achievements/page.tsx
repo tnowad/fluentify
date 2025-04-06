@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Award,
   BookOpen,
@@ -16,15 +16,32 @@ import {
   Star,
   Trophy,
   Zap,
-} from "lucide-react"
-import Link from "next/link"
+} from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Progress } from "@workspace/ui/components/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
-import { Badge } from "@workspace/ui/components/badge"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/components/tooltip"
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Progress } from "@workspace/ui/components/progress";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs";
+import { Badge } from "@workspace/ui/components/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
 
 // Sample streak data
 const streakData = {
@@ -39,7 +56,7 @@ const streakData = {
     { days: 60, achieved: false, reward: "Master Badge" },
     { days: 100, achieved: false, reward: "Legend Badge" },
   ],
-}
+};
 
 // Sample achievements data
 const achievementsData = [
@@ -131,7 +148,7 @@ const achievementsData = [
     category: "mastery",
     date: null,
   },
-]
+];
 
 // Sample level data
 const levelData = {
@@ -139,27 +156,28 @@ const levelData = {
   currentXP: 1250,
   nextLevelXP: 1500,
   totalXP: 7250,
-}
+};
 
 export default function AchievementsPage() {
-  const [activeTab, setActiveTab] = useState("all")
+  const [activeTab, setActiveTab] = useState("all");
 
   // Filter achievements based on active tab
   const filteredAchievements = achievementsData.filter((achievement) => {
-    if (activeTab === "all") return true
-    if (activeTab === "completed") return achievement.achieved
-    if (activeTab === "in-progress") return !achievement.achieved
-    return achievement.category === activeTab
-  })
+    if (activeTab === "all") return true;
+    if (activeTab === "completed") return achievement.achieved;
+    if (activeTab === "in-progress") return !achievement.achieved;
+    return achievement.category === activeTab;
+  });
 
   // Calculate level progress percentage
-  const levelProgressPercentage = (levelData.currentXP / levelData.nextLevelXP) * 100
+  const levelProgressPercentage =
+    (levelData.currentXP / levelData.nextLevelXP) * 100;
 
   // Get day name for streak calendar
   const getDayName = (index: number) => {
-    const days = ["M", "T", "W", "T", "F", "S", "S"]
-    return days[index]
-  }
+    const days = ["M", "T", "W", "T", "F", "S", "S"];
+    return days[index];
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -167,7 +185,9 @@ export default function AchievementsPage() {
       <header className="sticky top-0 z-10 border-b bg-background">
         <div className="container py-4">
           <h1 className="text-2xl font-bold">Streaks & Achievements</h1>
-          <p className="text-sm text-muted-foreground">Track your progress and unlock rewards</p>
+          <p className="text-sm text-muted-foreground">
+            Track your progress and unlock rewards
+          </p>
         </div>
       </header>
 
@@ -185,9 +205,12 @@ export default function AchievementsPage() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold">Level {levelData.currentLevel}</h2>
+                    <h2 className="text-xl font-bold">
+                      Level {levelData.currentLevel}
+                    </h2>
                     <p className="text-sm text-muted-foreground">
-                      {levelData.currentXP} / {levelData.nextLevelXP} XP to next level
+                      {levelData.currentXP} / {levelData.nextLevelXP} XP to next
+                      level
                     </p>
                   </div>
                 </div>
@@ -199,20 +222,30 @@ export default function AchievementsPage() {
                   <Progress value={levelProgressPercentage} className="h-2.5" />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="flex items-center gap-1 px-3 py-1.5">
+                  <Badge
+                    variant="outline"
+                    className="flex items-center gap-1 px-3 py-1.5"
+                  >
                     <Trophy className="h-3.5 w-3.5 text-amber-500" />
                     <span>{levelData.totalXP} Total XP</span>
                   </Badge>
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full"
+                        >
                           <Info className="h-4 w-4" />
                           <span className="sr-only">XP Info</span>
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Earn XP by learning words, completing quizzes, and maintaining streaks</p>
+                        <p>
+                          Earn XP by learning words, completing quizzes, and
+                          maintaining streaks
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
@@ -232,7 +265,9 @@ export default function AchievementsPage() {
                   <div>
                     <h3 className="text-lg font-medium">Current Streak</h3>
                     <div className="flex items-baseline gap-1">
-                      <span className="text-4xl font-bold">{streakData.currentStreak}</span>
+                      <span className="text-4xl font-bold">
+                        {streakData.currentStreak}
+                      </span>
                       <span>days</span>
                     </div>
                   </div>
@@ -243,7 +278,9 @@ export default function AchievementsPage() {
               </div>
               <CardContent className="p-6">
                 <div className="mb-4 flex items-center justify-between">
-                  <div className="text-sm text-muted-foreground">This week's activity</div>
+                  <div className="text-sm text-muted-foreground">
+                    This week's activity
+                  </div>
                   <Badge variant="outline" className="flex items-center gap-1">
                     <Calendar className="mr-1 h-3 w-3" />
                     <span>Longest: {streakData.longestStreak} days</span>
@@ -254,7 +291,9 @@ export default function AchievementsPage() {
                     <div key={index} className="flex flex-col items-center">
                       <div
                         className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                          active ? "bg-orange-100 text-orange-600" : "bg-muted text-muted-foreground"
+                          active
+                            ? "bg-orange-100 text-orange-600"
+                            : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {active ? <Check className="h-5 w-5" /> : null}
@@ -277,26 +316,42 @@ export default function AchievementsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Streak Milestones</CardTitle>
-                <CardDescription>Keep your streak going to unlock rewards</CardDescription>
+                <CardDescription>
+                  Keep your streak going to unlock rewards
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {streakData.streakMilestones.map((milestone, index) => (
                   <div key={index} className="flex items-center gap-4">
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full ${
-                        milestone.achieved ? "bg-orange-100 text-orange-600" : "bg-muted text-muted-foreground"
+                        milestone.achieved
+                          ? "bg-orange-100 text-orange-600"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {milestone.achieved ? <Medal className="h-5 w-5" /> : <Lock className="h-4 w-4" />}
+                      {milestone.achieved ? (
+                        <Medal className="h-5 w-5" />
+                      ) : (
+                        <Lock className="h-4 w-4" />
+                      )}
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium">{milestone.days}-Day Streak</h4>
-                        <Badge variant={milestone.achieved ? "default" : "outline"}>
-                          {milestone.achieved ? "Achieved" : `${streakData.currentStreak}/${milestone.days}`}
+                        <h4 className="font-medium">
+                          {milestone.days}-Day Streak
+                        </h4>
+                        <Badge
+                          variant={milestone.achieved ? "default" : "outline"}
+                        >
+                          {milestone.achieved
+                            ? "Achieved"
+                            : `${streakData.currentStreak}/${milestone.days}`}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">Reward: {milestone.reward}</p>
+                      <p className="text-sm text-muted-foreground">
+                        Reward: {milestone.reward}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -312,12 +367,18 @@ export default function AchievementsPage() {
             <Badge variant="outline" className="flex items-center gap-1">
               <Trophy className="mr-1 h-3.5 w-3.5" />
               <span>
-                {achievementsData.filter((a) => a.achieved).length}/{achievementsData.length} Unlocked
+                {achievementsData.filter((a) => a.achieved).length}/
+                {achievementsData.length} Unlocked
               </span>
             </Badge>
           </div>
 
-          <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+          <Tabs
+            defaultValue="all"
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="mb-6"
+          >
             <TabsList className="w-full sm:w-auto">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="completed">Completed</TabsTrigger>
@@ -335,12 +396,16 @@ export default function AchievementsPage() {
                       achievement.achieved ? "border-primary/20" : ""
                     }`}
                   >
-                    {achievement.achieved && <div className="h-1.5 w-full bg-primary" />}
+                    {achievement.achieved && (
+                      <div className="h-1.5 w-full bg-primary" />
+                    )}
                     <CardContent className="p-6">
                       <div className="mb-4 flex items-start justify-between">
                         <div
                           className={`flex h-12 w-12 items-center justify-center rounded-lg ${
-                            achievement.achieved ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                            achievement.achieved
+                              ? "bg-primary/10 text-primary"
+                              : "bg-muted text-muted-foreground"
                           }`}
                         >
                           {achievement.icon}
@@ -358,7 +423,9 @@ export default function AchievementsPage() {
                         )}
                       </div>
                       <h3 className="mb-1 font-semibold">{achievement.name}</h3>
-                      <p className="mb-3 text-sm text-muted-foreground">{achievement.description}</p>
+                      <p className="mb-3 text-sm text-muted-foreground">
+                        {achievement.description}
+                      </p>
 
                       {!achievement.achieved && (
                         <div className="space-y-1">
@@ -368,7 +435,12 @@ export default function AchievementsPage() {
                               {achievement.progress}/{achievement.total}
                             </span>
                           </div>
-                          <Progress value={(achievement.progress / achievement.total) * 100} className="h-2" />
+                          <Progress
+                            value={
+                              (achievement.progress / achievement.total) * 100
+                            }
+                            className="h-2"
+                          />
                         </div>
                       )}
 
@@ -387,6 +459,5 @@ export default function AchievementsPage() {
         </section>
       </main>
     </div>
-  )
+  );
 }
-

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const WordsLearnedSchema = z.object({
   total: z.number(),
@@ -28,7 +28,7 @@ export const WeeklyOverviewSchema = z.object({
     z.object({
       day: z.string().length(1), // M, T, W, T, F, S, S
       percent: z.number().min(0).max(100),
-    })
+    }),
   ),
 });
 

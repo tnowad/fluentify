@@ -1,9 +1,4 @@
-import {
-  Controller,
-  HttpStatus,
-  Logger,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, HttpStatus, Logger, UseGuards } from '@nestjs/common';
 import { TsRestHandler, TsRestException, tsRestHandler } from '@ts-rest/nest';
 import { flashcardContract, FlashcardSchema } from '@workspace/contracts';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -17,7 +12,9 @@ import { ClickhouseService } from '../clickhouse/clickhouse.service';
 import { QdrantService } from '../qdrant/qdrant.service';
 import { Model } from 'ebisu-js/interfaces';
 
-function mapFlashcard(input: z.infer<typeof FlashcardsTableSchema>): z.infer<typeof FlashcardSchema> {
+function mapFlashcard(
+  input: z.infer<typeof FlashcardsTableSchema>,
+): z.infer<typeof FlashcardSchema> {
   return {
     id: input.id,
     userId: input.user_id,
@@ -41,7 +38,7 @@ export class FlashcardsController {
     private readonly ebisu: EbisuService,
     private readonly clickhouse: ClickhouseService,
     private readonly qdrant: QdrantService,
-  ) { }
+  ) {}
 
   @TsRestHandler(flashcardContract)
   @UseGuards(JwtAuthGuard)
@@ -49,7 +46,9 @@ export class FlashcardsController {
     return tsRestHandler(flashcardContract, {
       listMyFlashcards: async ({ query }) => {
         const { topicId, limit, cursor } = query;
-        this.logger.log(`Fetching flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`);
+        this.logger.log(
+          `Fetching flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`,
+        );
 
         const builder = this.db
           .selectFrom('flashcards')
@@ -64,9 +63,10 @@ export class FlashcardsController {
           .limit(limit)
           .execute();
 
-        const nextCursor = flashcards.length === limit
-          ? flashcards[flashcards.length - 1].id
-          : null;
+        const nextCursor =
+          flashcards.length === limit
+            ? flashcards[flashcards.length - 1].id
+            : null;
 
         this.logger.log(`Fetched ${flashcards.length} flashcards`);
         return {
@@ -87,7 +87,9 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!flashcard) {
-          this.logger.warn(`Flashcard with id ${params.id} not found for user ${user.id}`);
+          this.logger.warn(
+            `Flashcard with id ${params.id} not found for user ${user.id}`,
+          );
           throw new TsRestException(flashcardContract.getFlashcardById, {
             status: HttpStatus.NOT_FOUND,
             body: { error: 'Not Found', message: 'Flashcard not found' },
@@ -99,7 +101,9 @@ export class FlashcardsController {
       },
 
       createFlashcard: async ({ body }) => {
-        this.logger.log(`Creating flashcard for wordId ${body.wordId} and topicId ${body.topicId}`);
+        this.logger.log(
+          `Creating flashcard for wordId ${body.wordId} and topicId ${body.topicId}`,
+        );
         const created = await this.db
           .insertInto('flashcards')
           .values({
@@ -137,10 +141,15 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!updated) {
-          this.logger.warn(`Flashcard with id ${params.id} not found or access denied`);
+          this.logger.warn(
+            `Flashcard with id ${params.id} not found or access denied`,
+          );
           throw new TsRestException(flashcardContract.updateFlashcard, {
             status: HttpStatus.NOT_FOUND,
-            body: { error: 'Not Found', message: 'Flashcard not found or access denied' },
+            body: {
+              error: 'Not Found',
+              message: 'Flashcard not found or access denied',
+            },
           });
         }
 
@@ -158,10 +167,15 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!deleted) {
-          this.logger.warn(`Flashcard with id ${params.id} not found or access denied`);
+          this.logger.warn(
+            `Flashcard with id ${params.id} not found or access denied`,
+          );
           throw new TsRestException(flashcardContract.deleteFlashcard, {
             status: HttpStatus.NOT_FOUND,
-            body: { error: 'Not Found', message: 'Flashcard not found or access denied' },
+            body: {
+              error: 'Not Found',
+              message: 'Flashcard not found or access denied',
+            },
           });
         }
 
@@ -171,7 +185,9 @@ export class FlashcardsController {
 
       getDueFlashcards: async ({ query }) => {
         const { topicId, limit, cursor } = query;
-        this.logger.log(`Fetching due flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`);
+        this.logger.log(
+          `Fetching due flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`,
+        );
 
         const builder = this.db
           .selectFrom('flashcards')
@@ -182,14 +198,9 @@ export class FlashcardsController {
         if (topicId) builder.where('topic_id', '=', topicId);
         if (cursor) builder.where('id', '<', cursor);
 
-        const due = await builder
-          .orderBy('id', 'desc')
-          .limit(limit)
-          .execute();
+        const due = await builder.orderBy('id', 'desc').limit(limit).execute();
 
-        const nextCursor = due.length === limit
-          ? due[due.length - 1].id
-          : null;
+        const nextCursor = due.length === limit ? due[due.length - 1].id : null;
 
         this.logger.log(`Fetched ${due.length} due flashcards`);
         return {
@@ -206,7 +217,9 @@ export class FlashcardsController {
         const { id } = params;
         const { rating, responseTimeMs } = body;
 
-        this.logger.log(`Submitting review for flashcard with id ${id}, rating: ${rating}`);
+        this.logger.log(
+          `Submitting review for flashcard with id ${id}, rating: ${rating}`,
+        );
         const card = await this.db
           .selectFrom('flashcards')
           .selectAll()
@@ -215,32 +228,43 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!card) {
-          this.logger.warn(`Flashcard with id ${id} not found or access denied`);
+          this.logger.warn(
+            `Flashcard with id ${id} not found or access denied`,
+          );
           throw new TsRestException(flashcardContract.submitReview, {
             status: HttpStatus.NOT_FOUND,
-            body: { error: 'Not Found', message: 'Flashcard not found or access denied' },
+            body: {
+              error: 'Not Found',
+              message: 'Flashcard not found or access denied',
+            },
           });
         }
 
         const lastReviewed = card.last_reviewed_at ?? now;
-        const elapsedDays = (now.getTime() - lastReviewed.getTime()) / (86400000);
+        const elapsedDays = (now.getTime() - lastReviewed.getTime()) / 86400000;
 
         const defaultModel: Model = this.ebisu.createModel(elapsedDays);
         const currentModel = card.ebisu_model ?? defaultModel;
 
         const successes = rating === 'forgot' ? 0 : 1;
         const total = 1;
-        const newModel = this.ebisu.update(currentModel, successes, total, elapsedDays);
+        const newModel = this.ebisu.update(
+          currentModel,
+          successes,
+          total,
+          elapsedDays,
+        );
         const nextInterval = this.ebisu.getHalfLife(newModel, 0.5);
 
         const updated = await this.db
           .updateTable('flashcards')
           .set({
-            status: rating === 'forgot'
-              ? 'new'
-              : card.repetitions + 1 > 5
-                ? 'mastered'
-                : 'learning',
+            status:
+              rating === 'forgot'
+                ? 'new'
+                : card.repetitions + 1 > 5
+                  ? 'mastered'
+                  : 'learning',
             repetitions: rating === 'forgot' ? 0 : card.repetitions + 1,
             ease_factor: card.ease_factor,
             interval_days: nextInterval,
@@ -270,8 +294,16 @@ export class FlashcardsController {
           rating === 'forgot'
             ? [0.1 * Math.min(responseTimeMs / 1000, 1), 0.0, 0.0]
             : rating === 'hard'
-              ? [0.5 * Math.min(responseTimeMs / 1000, 1), 0.5 * Math.min(responseTimeMs / 1000, 1), 0.5 * Math.min(responseTimeMs / 1000, 1)]
-              : [1.0 * Math.min(responseTimeMs / 1000, 1), 1.0 * Math.min(responseTimeMs / 1000, 1), 1.0 * Math.min(responseTimeMs / 1000, 1)]
+              ? [
+                  0.5 * Math.min(responseTimeMs / 1000, 1),
+                  0.5 * Math.min(responseTimeMs / 1000, 1),
+                  0.5 * Math.min(responseTimeMs / 1000, 1),
+                ]
+              : [
+                  1.0 * Math.min(responseTimeMs / 1000, 1),
+                  1.0 * Math.min(responseTimeMs / 1000, 1),
+                  1.0 * Math.min(responseTimeMs / 1000, 1),
+                ],
         );
 
         this.logger.log(`Review submitted for flashcard ${id}`);

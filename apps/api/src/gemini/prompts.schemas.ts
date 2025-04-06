@@ -5,7 +5,7 @@ export const analysisPromptSchema = z.object({
   translation: z.string(),
   context: z.string(),
   recipient: z.string(),
-  formality: z.enum(["formal", "neutral", "informal"]),
+  formality: z.enum(['formal', 'neutral', 'informal']),
   sentenceBreakdown: z.array(
     z.object({
       word: z.string(),
@@ -13,7 +13,7 @@ export const analysisPromptSchema = z.object({
       partOfSpeech: z.string(),
       meaning: z.string(),
       notes: z.string(),
-    })
+    }),
   ),
   aboutSentence: z.string(),
   grammar: z.string(),
@@ -23,15 +23,15 @@ export const analysisPromptSchema = z.object({
       reading: z.string(),
       meaning: z.string(),
       usage: z.string(),
-    })
+    }),
   ),
   alternativeExpressions: z.array(
     z.object({
       expression: z.string(),
       translation: z.string(),
-      formality: z.enum(["formal", "neutral", "informal"]),
+      formality: z.enum(['formal', 'neutral', 'informal']),
       notes: z.string(),
-    })
+    }),
   ),
 });
 
@@ -43,10 +43,10 @@ export const analyzeCommonErrorsPromptSchema = z.object({
       location: z.string(),
       correction: z.string(),
       explanation: z.string(),
-    })
+    }),
   ),
   context: z.string(),
-  formality: z.enum(["formal", "neutral", "informal"]),
+  formality: z.enum(['formal', 'neutral', 'informal']),
   sentenceBreakdown: z.array(
     z.object({
       word: z.string(),
@@ -54,7 +54,7 @@ export const analyzeCommonErrorsPromptSchema = z.object({
       partOfSpeech: z.string(),
       meaning: z.string(),
       notes: z.string(),
-    })
+    }),
   ),
   grammar: z.string(),
 });
@@ -65,11 +65,11 @@ export const suggestSynonymsPromptSchema = z.object({
     z.object({
       synonym: z.string(),
       context: z.string(),
-      formality: z.enum(["formal", "neutral", "informal"]),
+      formality: z.enum(['formal', 'neutral', 'informal']),
       notes: z.string(),
-    })
+    }),
   ),
-  formality: z.enum(["formal", "neutral", "informal"]),
+  formality: z.enum(['formal', 'neutral', 'informal']),
 });
 
 export const analyzeSentenceStructurePromptSchema = z.object({
@@ -85,17 +85,17 @@ export const analyzeSentenceStructurePromptSchema = z.object({
       phraseType: z.string(),
       position: z.string(),
       notes: z.string(),
-    })
+    }),
   ),
   context: z.string(),
-  formality: z.enum(["formal", "neutral", "informal"]),
+  formality: z.enum(['formal', 'neutral', 'informal']),
 });
 
 export const translateWithContextPromptSchema = z.object({
   originalSentence: z.string(),
   translation: z.string(),
   context: z.string(),
-  formality: z.enum(["formal", "neutral", "informal"]),
+  formality: z.enum(['formal', 'neutral', 'informal']),
   culturalImplications: z.string(),
 });
 
@@ -107,18 +107,18 @@ export const identifyIdiomPromptSchema = z.object({
       meaning: z.string(),
       context: z.string(),
       notes: z.string(),
-    })
+    }),
   ),
-  formality: z.enum(["formal", "neutral", "informal"]),
+  formality: z.enum(['formal', 'neutral', 'informal']),
 });
 
 export const provideToneVariationsPromptSchema = z.object({
   originalSentence: z.string(),
   variations: z.array(
     z.object({
-      tone: z.enum(["friendly", "sarcastic", "professional"]),
+      tone: z.enum(['friendly', 'sarcastic', 'professional']),
       text: z.string(),
-    })
+    }),
   ),
 });
 
@@ -130,12 +130,12 @@ export const explainGrammarRulePromptSchema = z.object({
     z.object({
       exampleSentence: z.string(),
       context: z.string(),
-    })
+    }),
   ),
 });
 
 export const identifyMoodPromptSchema = z.object({
   originalSentence: z.string(),
-  mood: z.enum(["imperative", "declarative", "interrogative", "exclamatory"]),
+  mood: z.enum(['imperative', 'declarative', 'interrogative', 'exclamatory']),
   justification: z.string(),
 });

@@ -1,16 +1,40 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Bell, ChevronRight, Globe, HelpCircle, LogOut, Moon, Save, Trash2, Upload, Volume2 } from "lucide-react"
+import { useState } from "react";
+import {
+  Bell,
+  ChevronRight,
+  Globe,
+  HelpCircle,
+  LogOut,
+  Moon,
+  Save,
+  Trash2,
+  Upload,
+  Volume2,
+} from "lucide-react";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
-import { Switch } from "@workspace/ui/components/switch"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@workspace/ui/components/select"
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Switch } from "@workspace/ui/components/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,10 +45,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@workspace/ui/components/alert-dialog"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@workspace/ui/components/tooltip"
-import { Slider } from "@workspace/ui/components/slider"
-import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
+} from "@workspace/ui/components/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip";
+import { Slider } from "@workspace/ui/components/slider";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar";
 
 export default function SettingsPage() {
   // User profile state
@@ -32,7 +65,7 @@ export default function SettingsPage() {
     name: "Alex Johnson",
     email: "alex.johnson@example.com",
     avatar: "/placeholder.svg?height=100&width=100",
-  })
+  });
 
   // Goal settings state
   const [goals, setGoals] = useState({
@@ -40,7 +73,7 @@ export default function SettingsPage() {
     studyTime: 30,
     difficulty: "balanced",
     reviewFrequency: "daily",
-  })
+  });
 
   // App preferences state
   const [preferences, setPreferences] = useState({
@@ -49,47 +82,47 @@ export default function SettingsPage() {
     notifications: true,
     autoPlay: true,
     language: "english",
-  })
+  });
 
   // Handle profile changes
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setProfile({
       ...profile,
       [e.target.name]: e.target.value,
-    })
-  }
+    });
+  };
 
   // Handle words per day slider change
   const handleWordsPerDayChange = (value: number[]) => {
     setGoals({
       ...goals,
       wordsPerDay: value[0],
-    })
-  }
+    });
+  };
 
   // Handle study time slider change
   const handleStudyTimeChange = (value: number[]) => {
     setGoals({
       ...goals,
       studyTime: value[0],
-    })
-  }
+    });
+  };
 
   // Handle preference toggle changes
   const handleToggleChange = (name: string, checked: boolean) => {
     setPreferences({
       ...preferences,
       [name]: checked,
-    })
-  }
+    });
+  };
 
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     // In a real app, this would save the settings to a database
-    console.log("Saving settings:", { profile, goals, preferences })
+    console.log("Saving settings:", { profile, goals, preferences });
     // Show success message or notification
-  }
+  };
 
   return (
     <div className="min-h-screen bg-background pb-8">
@@ -97,7 +130,9 @@ export default function SettingsPage() {
       <header className="sticky top-0 z-10 border-b bg-background">
         <div className="container py-4">
           <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-muted-foreground">Manage your account and preferences</p>
+          <p className="text-sm text-muted-foreground">
+            Manage your account and preferences
+          </p>
         </div>
       </header>
 
@@ -107,7 +142,9 @@ export default function SettingsPage() {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Profile Information</CardTitle>
-              <CardDescription>Update your personal information and profile picture</CardDescription>
+              <CardDescription>
+                Update your personal information and profile picture
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
@@ -116,7 +153,11 @@ export default function SettingsPage() {
                     <AvatarImage src={profile.avatar} alt={profile.name} />
                     <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
                   </Avatar>
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center gap-1"
+                  >
                     <Upload className="mr-1 h-4 w-4" />
                     Change Avatar
                   </Button>
@@ -152,7 +193,9 @@ export default function SettingsPage() {
                     <div className="col-span-3 flex items-center justify-between rounded-md border p-3">
                       <div>
                         <p className="font-medium">Premium Plan</p>
-                        <p className="text-sm text-muted-foreground">Active until Dec 31, 2023</p>
+                        <p className="text-sm text-muted-foreground">
+                          Active until Dec 31, 2023
+                        </p>
                       </div>
                       <Button variant="outline" size="sm">
                         Manage
@@ -168,7 +211,9 @@ export default function SettingsPage() {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>Learning Goals</CardTitle>
-              <CardDescription>Set your daily targets and learning preferences</CardDescription>
+              <CardDescription>
+                Set your daily targets and learning preferences
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
@@ -178,17 +223,25 @@ export default function SettingsPage() {
                   </Label>
                   <div className="col-span-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Target: {goals.wordsPerDay} words</span>
+                      <span className="text-sm text-muted-foreground">
+                        Target: {goals.wordsPerDay} words
+                      </span>
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                            >
                               <HelpCircle className="h-4 w-4" />
                               <span className="sr-only">Help</span>
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Set how many new words you want to learn each day</p>
+                            <p>
+                              Set how many new words you want to learn each day
+                            </p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -215,7 +268,9 @@ export default function SettingsPage() {
                   </Label>
                   <div className="col-span-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Target: {goals.studyTime} minutes</span>
+                      <span className="text-sm text-muted-foreground">
+                        Target: {goals.studyTime} minutes
+                      </span>
                     </div>
                     <Slider
                       id="study-time"
@@ -237,14 +292,25 @@ export default function SettingsPage() {
                   <Label htmlFor="difficulty" className="text-right">
                     Difficulty
                   </Label>
-                  <Select value={goals.difficulty} onValueChange={(value) => setGoals({ ...goals, difficulty: value })}>
+                  <Select
+                    value={goals.difficulty}
+                    onValueChange={(value) =>
+                      setGoals({ ...goals, difficulty: value })
+                    }
+                  >
                     <SelectTrigger id="difficulty" className="col-span-3">
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="easy">Easy - Focus on basic vocabulary</SelectItem>
-                      <SelectItem value="balanced">Balanced - Mix of difficulty levels</SelectItem>
-                      <SelectItem value="challenging">Challenging - Prioritize difficult words</SelectItem>
+                      <SelectItem value="easy">
+                        Easy - Focus on basic vocabulary
+                      </SelectItem>
+                      <SelectItem value="balanced">
+                        Balanced - Mix of difficulty levels
+                      </SelectItem>
+                      <SelectItem value="challenging">
+                        Challenging - Prioritize difficult words
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -255,15 +321,23 @@ export default function SettingsPage() {
                   </Label>
                   <Select
                     value={goals.reviewFrequency}
-                    onValueChange={(value) => setGoals({ ...goals, reviewFrequency: value })}
+                    onValueChange={(value) =>
+                      setGoals({ ...goals, reviewFrequency: value })
+                    }
                   >
                     <SelectTrigger id="review-frequency" className="col-span-3">
                       <SelectValue placeholder="Select review frequency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="daily">Daily - Review words every day</SelectItem>
-                      <SelectItem value="spaced">Spaced - Optimal intervals for retention</SelectItem>
-                      <SelectItem value="weekly">Weekly - Consolidated weekly reviews</SelectItem>
+                      <SelectItem value="daily">
+                        Daily - Review words every day
+                      </SelectItem>
+                      <SelectItem value="spaced">
+                        Spaced - Optimal intervals for retention
+                      </SelectItem>
+                      <SelectItem value="weekly">
+                        Weekly - Consolidated weekly reviews
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -275,7 +349,9 @@ export default function SettingsPage() {
           <Card className="mb-6">
             <CardHeader>
               <CardTitle>App Preferences</CardTitle>
-              <CardDescription>Customize your learning experience</CardDescription>
+              <CardDescription>
+                Customize your learning experience
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -289,12 +365,16 @@ export default function SettingsPage() {
                         <Volume2 className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>Pronunciation audio</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">Automatically play word pronunciations</p>
+                      <p className="text-sm text-muted-foreground">
+                        Automatically play word pronunciations
+                      </p>
                     </div>
                     <Switch
                       id="speech-mode"
                       checked={preferences.speechMode}
-                      onCheckedChange={(checked) => handleToggleChange("speechMode", checked)}
+                      onCheckedChange={(checked) =>
+                        handleToggleChange("speechMode", checked)
+                      }
                     />
                   </div>
                 </div>
@@ -309,12 +389,16 @@ export default function SettingsPage() {
                         <Moon className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>Dark theme</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">Switch between light and dark theme</p>
+                      <p className="text-sm text-muted-foreground">
+                        Switch between light and dark theme
+                      </p>
                     </div>
                     <Switch
                       id="dark-mode"
                       checked={preferences.darkMode}
-                      onCheckedChange={(checked) => handleToggleChange("darkMode", checked)}
+                      onCheckedChange={(checked) =>
+                        handleToggleChange("darkMode", checked)
+                      }
                     />
                   </div>
                 </div>
@@ -329,12 +413,16 @@ export default function SettingsPage() {
                         <Bell className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>Study reminders</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">Receive daily reminders to study</p>
+                      <p className="text-sm text-muted-foreground">
+                        Receive daily reminders to study
+                      </p>
                     </div>
                     <Switch
                       id="notifications"
                       checked={preferences.notifications}
-                      onCheckedChange={(checked) => handleToggleChange("notifications", checked)}
+                      onCheckedChange={(checked) =>
+                        handleToggleChange("notifications", checked)
+                      }
                     />
                   </div>
                 </div>
@@ -349,11 +437,15 @@ export default function SettingsPage() {
                         <Globe className="mr-2 h-4 w-4 text-muted-foreground" />
                         <span>Interface language</span>
                       </div>
-                      <p className="text-sm text-muted-foreground">Change the app's display language</p>
+                      <p className="text-sm text-muted-foreground">
+                        Change the app's display language
+                      </p>
                     </div>
                     <Select
                       value={preferences.language}
-                      onValueChange={(value) => setPreferences({ ...preferences, language: value })}
+                      onValueChange={(value) =>
+                        setPreferences({ ...preferences, language: value })
+                      }
                     >
                       <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Select language" />
@@ -375,14 +467,19 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Data Management</CardTitle>
-              <CardDescription>Manage your learning data and account settings</CardDescription>
+              <CardDescription>
+                Manage your learning data and account settings
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid grid-cols-4 items-start gap-4">
                   <Label className="pt-2 text-right">Export data</Label>
                   <div className="col-span-3">
-                    <Button variant="outline" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
                       Download your learning data
                       <ChevronRight className="ml-1 h-4 w-4" />
                     </Button>
@@ -393,7 +490,9 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="pt-2 text-right text-destructive">Reset progress</Label>
+                  <Label className="pt-2 text-right text-destructive">
+                    Reset progress
+                  </Label>
                   <div className="col-span-3">
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
@@ -407,10 +506,13 @@ export default function SettingsPage() {
                       </AlertDialogTrigger>
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                          <AlertDialogTitle>
+                            Are you absolutely sure?
+                          </AlertDialogTitle>
                           <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete all your learning progress,
-                            including words learned, review history, and statistics.
+                            This action cannot be undone. This will permanently
+                            delete all your learning progress, including words
+                            learned, review history, and statistics.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -428,9 +530,14 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="grid grid-cols-4 items-start gap-4">
-                  <Label className="pt-2 text-right text-destructive">Account</Label>
+                  <Label className="pt-2 text-right text-destructive">
+                    Account
+                  </Label>
                   <div className="col-span-3 space-y-2">
-                    <Button variant="outline" className="flex items-center gap-1">
+                    <Button
+                      variant="outline"
+                      className="flex items-center gap-1"
+                    >
                       <LogOut className="mr-1 h-4 w-4" />
                       Sign out
                     </Button>
@@ -454,6 +561,5 @@ export default function SettingsPage() {
         </form>
       </main>
     </div>
-  )
+  );
 }
-

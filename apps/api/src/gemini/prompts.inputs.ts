@@ -69,7 +69,6 @@ export const analyzeCommonErrorsPrompt = (input: string) => `
   }
 `;
 
-
 export const suggestSynonymsPrompt = (input: string) => `
   You are a language assistant. Suggest synonyms for the following sentence and respond **only** with raw JSON, no explanations, no code blocks, no markdown. Follow this exact schema:
 

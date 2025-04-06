@@ -1,21 +1,35 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Bell, BookOpen, Check, ChevronRight, Clock, MoreHorizontal, Sparkles, X } from "lucide-react"
-import Link from "next/link"
+import { useState } from "react";
+import {
+  Bell,
+  BookOpen,
+  Check,
+  ChevronRight,
+  Clock,
+  MoreHorizontal,
+  Sparkles,
+  X,
+} from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent } from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import { Button } from "@workspace/ui/components/button";
+import { Card, CardContent } from "@workspace/ui/components/card";
+import { Badge } from "@workspace/ui/components/badge";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu"
-import { Separator } from "@workspace/ui/components/separator"
+} from "@workspace/ui/components/dropdown-menu";
+import { Separator } from "@workspace/ui/components/separator";
 
 // Sample notification data
 const notifications = [
@@ -35,7 +49,8 @@ const notifications = [
     id: 2,
     type: "ai",
     title: "Learning suggestion",
-    message: "Based on your performance, we recommend focusing on Business Vocabulary this week.",
+    message:
+      "Based on your performance, we recommend focusing on Business Vocabulary this week.",
     timestamp: "2 hours ago",
     isRead: false,
     action: {
@@ -71,7 +86,8 @@ const notifications = [
     id: 5,
     type: "review",
     title: "Weekly review summary",
-    message: "Last week you reviewed 85 words with an accuracy of 92%. Great job!",
+    message:
+      "Last week you reviewed 85 words with an accuracy of 92%. Great job!",
     timestamp: "2 days ago",
     isRead: true,
     action: null,
@@ -80,7 +96,8 @@ const notifications = [
     id: 6,
     type: "ai",
     title: "Personalized study plan",
-    message: "We've created a personalized study plan based on your recent performance.",
+    message:
+      "We've created a personalized study plan based on your recent performance.",
     timestamp: "3 days ago",
     isRead: true,
     action: {
@@ -100,61 +117,72 @@ const notifications = [
       url: "/quick-review",
     },
   },
-]
+];
 
 export default function NotificationsPage() {
-  const [activeTab, setActiveTab] = useState("all")
-  const [notificationState, setNotificationState] = useState(notifications)
+  const [activeTab, setActiveTab] = useState("all");
+  const [notificationState, setNotificationState] = useState(notifications);
 
   // Filter notifications based on active tab
   const filteredNotifications = notificationState.filter((notification) => {
-    if (activeTab === "all") return true
-    if (activeTab === "unread") return !notification.isRead
-    return notification.type === activeTab
-  })
+    if (activeTab === "all") return true;
+    if (activeTab === "unread") return !notification.isRead;
+    return notification.type === activeTab;
+  });
 
   // Mark a notification as read
   const markAsRead = (id: number) => {
     setNotificationState(
       notificationState.map((notification) =>
-        notification.id === id ? { ...notification, isRead: true } : notification,
+        notification.id === id
+          ? { ...notification, isRead: true }
+          : notification,
       ),
-    )
-  }
+    );
+  };
 
   // Mark all notifications as read
   const markAllAsRead = () => {
-    setNotificationState(notificationState.map((notification) => ({ ...notification, isRead: true })))
-  }
+    setNotificationState(
+      notificationState.map((notification) => ({
+        ...notification,
+        isRead: true,
+      })),
+    );
+  };
 
   // Delete a notification
   const deleteNotification = (id: number) => {
-    setNotificationState(notificationState.filter((notification) => notification.id !== id))
-  }
+    setNotificationState(
+      notificationState.filter((notification) => notification.id !== id),
+    );
+  };
 
   // Clear all notifications
   const clearAllNotifications = () => {
-    setNotificationState([])
-  }
+    setNotificationState([]);
+  };
 
   // Get icon based on notification type
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "review":
-        return <BookOpen className="h-5 w-5 text-blue-500" />
+        return <BookOpen className="h-5 w-5 text-blue-500" />;
       case "ai":
-        return <Sparkles className="h-5 w-5 text-purple-500" />
+        return <Sparkles className="h-5 w-5 text-purple-500" />;
       case "reminder":
-        return <Clock className="h-5 w-5 text-orange-500" />
+        return <Clock className="h-5 w-5 text-orange-500" />;
       case "system":
-        return <Bell className="h-5 w-5 text-gray-500" />
+        return <Bell className="h-5 w-5 text-gray-500" />;
       default:
-        return <Bell className="h-5 w-5 text-gray-500" />
+        return <Bell className="h-5 w-5 text-gray-500" />;
     }
-  }
+  };
 
   // Count unread notifications
-  const unreadCount = notificationState.filter((notification) => !notification.isRead).length
+  const unreadCount = notificationState.filter(
+    (notification) => !notification.isRead,
+  ).length;
 
   return (
     <div className="min-h-screen bg-background">
@@ -164,7 +192,9 @@ export default function NotificationsPage() {
           <div>
             <h1 className="text-2xl font-bold">Notifications</h1>
             <p className="text-sm text-muted-foreground">
-              {unreadCount > 0 ? `You have ${unreadCount} unread notifications` : "No new notifications"}
+              {unreadCount > 0
+                ? `You have ${unreadCount} unread notifications`
+                : "No new notifications"}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -181,7 +211,10 @@ export default function NotificationsPage() {
                   Mark all as read
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={clearAllNotifications} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={clearAllNotifications}
+                  className="text-red-600"
+                >
                   <X className="mr-2 h-4 w-4" />
                   Clear all notifications
                 </DropdownMenuItem>
@@ -193,14 +226,22 @@ export default function NotificationsPage() {
 
       <main className="container py-6">
         {/* Tabs for filtering */}
-        <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        <Tabs
+          defaultValue="all"
+          value={activeTab}
+          onValueChange={setActiveTab}
+          className="mb-6"
+        >
           <div className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="unread">
                 Unread
                 {unreadCount > 0 && (
-                  <Badge variant="secondary" className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 h-5 w-5 rounded-full p-0 text-xs"
+                  >
                     {unreadCount}
                   </Badge>
                 )}
@@ -222,24 +263,34 @@ export default function NotificationsPage() {
                   >
                     <CardContent className="p-0">
                       <div className="flex items-start p-4">
-                        <div className="mr-4 mt-0.5">{getNotificationIcon(notification.type)}</div>
+                        <div className="mr-4 mt-0.5">
+                          {getNotificationIcon(notification.type)}
+                        </div>
                         <div className="flex-1">
                           <div className="mb-1 flex items-center justify-between">
-                            <h3 className="font-medium">{notification.title}</h3>
+                            <h3 className="font-medium">
+                              {notification.title}
+                            </h3>
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">{notification.timestamp}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {notification.timestamp}
+                              </span>
                               <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-6 w-6"
-                                onClick={() => deleteNotification(notification.id)}
+                                onClick={() =>
+                                  deleteNotification(notification.id)
+                                }
                               >
                                 <X className="h-3 w-3" />
                                 <span className="sr-only">Delete</span>
                               </Button>
                             </div>
                           </div>
-                          <p className="text-sm text-muted-foreground">{notification.message}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {notification.message}
+                          </p>
                           {!notification.isRead && (
                             <Button
                               variant="ghost"
@@ -257,7 +308,12 @@ export default function NotificationsPage() {
                         <>
                           <Separator />
                           <div className="p-2">
-                            <Button variant="ghost" size="sm" className="w-full justify-between" asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="w-full justify-between"
+                              asChild
+                            >
                               <Link href={notification.action.url}>
                                 {notification.action.label}
                                 <ChevronRight className="h-4 w-4" />
@@ -280,7 +336,11 @@ export default function NotificationsPage() {
                     : `You don't have any ${activeTab} notifications`}
                 </p>
                 {activeTab !== "all" && (
-                  <Button variant="outline" className="mt-4" onClick={() => setActiveTab("all")}>
+                  <Button
+                    variant="outline"
+                    className="mt-4"
+                    onClick={() => setActiveTab("all")}
+                  >
                     View all notifications
                   </Button>
                 )}
@@ -290,6 +350,5 @@ export default function NotificationsPage() {
         </Tabs>
       </main>
     </div>
-  )
+  );
 }
-

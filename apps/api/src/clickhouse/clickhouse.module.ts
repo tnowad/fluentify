@@ -3,6 +3,6 @@ import { ClickhouseService } from './clickhouse.service';
 
 @Module({
   providers: [ClickhouseService],
-  exports: [ClickhouseService]
+  exports: [ClickhouseService],
 })
-export class ClickhouseModule { }
+export class ClickhouseModule {}

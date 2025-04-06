@@ -1,9 +1,9 @@
-import { api } from '@/lib/api';
-import { HttpStatus } from '@workspace/contracts';
-import { queryOptions } from '@tanstack/react-query';
+import { api } from "@/lib/api";
+import { HttpStatus } from "@workspace/contracts";
+import { queryOptions } from "@tanstack/react-query";
 
 export const getMeQueryOptions = queryOptions({
-  queryKey: ['me'],
+  queryKey: ["me"],
   queryFn: async () => {
     const { status, body } = await api.auth.me();
     switch (status) {
@@ -16,5 +16,4 @@ export const getMeQueryOptions = queryOptions({
   enabled: true,
   retry: false,
   refetchOnWindowFocus: false,
-})
-
+});

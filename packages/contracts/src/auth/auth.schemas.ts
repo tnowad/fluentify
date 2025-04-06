@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const UserSchema = z.object({
   id: z.string().uuid(),
@@ -42,4 +42,3 @@ export const ResetPasswordRequest = z.object({
 export const AuthSuccessResponse = TokenPairSchema.extend({
   user: UserSchema,
 });
-

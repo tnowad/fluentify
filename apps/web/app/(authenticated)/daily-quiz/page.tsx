@@ -1,13 +1,20 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { CheckCircle, Clock, Home, Share2, XCircle } from "lucide-react"
-import Link from "next/link"
+import { useState, useEffect } from "react";
+import { CheckCircle, Clock, Home, Share2, XCircle } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from "@workspace/ui/components/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@workspace/ui/components/card"
-import { Progress } from "@workspace/ui/components/progress"
-import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card";
+import { Progress } from "@workspace/ui/components/progress";
+import { Badge } from "@workspace/ui/components/badge";
 
 // Sample quiz data
 const quizData = [
@@ -66,23 +73,25 @@ const quizData = [
       "To analyze data",
     ],
   },
-]
+];
 
 // Quiz states
-type QuizState = "intro" | "question" | "feedback" | "summary"
+type QuizState = "intro" | "question" | "feedback" | "summary";
 
 export default function DailyQuizPage() {
   // Quiz state management
-  const [quizState, setQuizState] = useState<QuizState>("intro")
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [score, setScore] = useState(0)
-  const [answers, setAnswers] = useState<{ correct: boolean; selectedAnswer: string }[]>([])
-  const [timeLeft, setTimeLeft] = useState(30)
-  const [timerActive, setTimerActive] = useState(false)
+  const [quizState, setQuizState] = useState<QuizState>("intro");
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [score, setScore] = useState(0);
+  const [answers, setAnswers] = useState<
+    { correct: boolean; selectedAnswer: string }[]
+  >([]);
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [timerActive, setTimerActive] = useState(false);
 
-  const currentQuestion = quizData[currentQuestionIndex]
-  const totalQuestions = quizData.length
+  const currentQuestion = quizData[currentQuestionIndex];
+  const totalQuestions = quizData.length;
 
   // Start timer when question is shown
   useEffect(() => {
@@ -90,35 +99,35 @@ export default function DailyQuizPage() {
       const timer = setInterval(() => {
         setTimeLeft((prevTime) => {
           if (prevTime <= 1) {
-            clearInterval(timer)
-            setTimerActive(false)
-            handleTimeout()
-            return 0
+            clearInterval(timer);
+            setTimerActive(false);
+            handleTimeout();
+            return 0;
           }
-          return prevTime - 1
-        })
-      }, 1000)
+          return prevTime - 1;
+        });
+      }, 1000);
 
-      return () => clearInterval(timer)
+      return () => clearInterval(timer);
     }
-  }, [quizState, timerActive])
+  }, [quizState, timerActive]);
 
   // Start the quiz
   const startQuiz = () => {
-    setQuizState("question")
-    setTimeLeft(30)
-    setTimerActive(true)
-  }
+    setQuizState("question");
+    setTimeLeft(30);
+    setTimerActive(true);
+  };
 
   // Handle answer selection
   const handleAnswerSelect = (answer: string) => {
     if (timerActive) {
-      setTimerActive(false)
-      setSelectedAnswer(answer)
+      setTimerActive(false);
+      setSelectedAnswer(answer);
 
-      const isCorrect = answer === currentQuestion.correctAnswer
+      const isCorrect = answer === currentQuestion.correctAnswer;
       if (isCorrect) {
-        setScore(score + 1)
+        setScore(score + 1);
       }
 
       setAnswers([
@@ -127,68 +136,72 @@ export default function DailyQuizPage() {
           correct: isCorrect,
           selectedAnswer: answer,
         },
-      ])
+      ]);
 
-      setQuizState("feedback")
+      setQuizState("feedback");
     }
-  }
+  };
 
   // Handle timeout (no answer selected)
   const handleTimeout = () => {
-    setSelectedAnswer(null)
+    setSelectedAnswer(null);
     setAnswers([
       ...answers,
       {
         correct: false,
         selectedAnswer: "",
       },
-    ])
-    setQuizState("feedback")
-  }
+    ]);
+    setQuizState("feedback");
+  };
 
   // Move to next question
   const handleNextQuestion = () => {
     if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1)
-      setSelectedAnswer(null)
-      setQuizState("question")
-      setTimeLeft(30)
-      setTimerActive(true)
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setSelectedAnswer(null);
+      setQuizState("question");
+      setTimeLeft(30);
+      setTimerActive(true);
     } else {
-      setQuizState("summary")
+      setQuizState("summary");
     }
-  }
+  };
 
   // Restart the quiz
   const restartQuiz = () => {
-    setQuizState("intro")
-    setCurrentQuestionIndex(0)
-    setSelectedAnswer(null)
-    setScore(0)
-    setAnswers([])
-    setTimeLeft(30)
-    setTimerActive(false)
-  }
+    setQuizState("intro");
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setScore(0);
+    setAnswers([]);
+    setTimeLeft(30);
+    setTimerActive(false);
+  };
 
   // Format time display
   const formatTime = (seconds: number) => {
-    return `${seconds}s`
-  }
+    return `${seconds}s`;
+  };
 
   // Calculate percentage for progress bar
-  const progressPercentage = (currentQuestionIndex / totalQuestions) * 100
+  const progressPercentage = (currentQuestionIndex / totalQuestions) * 100;
 
   // Render quiz intro screen
   const renderIntro = () => (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
         <CardTitle className="text-2xl">Daily TOEIC Quiz</CardTitle>
-        <CardDescription>Test your vocabulary knowledge with today's quiz</CardDescription>
+        <CardDescription>
+          Test your vocabulary knowledge with today's quiz
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="rounded-lg bg-muted p-4 text-center">
           <h3 className="font-medium">Today's Challenge</h3>
-          <p className="text-sm text-muted-foreground">5 business vocabulary words • Multiple choice</p>
+          <p className="text-sm text-muted-foreground">
+            5 business vocabulary words • Multiple choice
+          </p>
         </div>
         <div className="space-y-2 text-sm">
           <div className="flex items-center justify-between">
@@ -211,7 +224,7 @@ export default function DailyQuizPage() {
         </Button>
       </CardFooter>
     </Card>
-  )
+  );
 
   // Render question screen
   const renderQuestion = () => (
@@ -231,7 +244,9 @@ export default function DailyQuizPage() {
       <CardContent className="space-y-6 pt-4">
         <div className="text-center">
           <h2 className="text-3xl font-bold">{currentQuestion.word}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Select the correct definition</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Select the correct definition
+          </p>
         </div>
         <div className="space-y-3">
           {currentQuestion.options.map((option, index) => (
@@ -256,15 +271,17 @@ export default function DailyQuizPage() {
         <div>Time remaining: {formatTime(timeLeft)}</div>
       </CardFooter>
     </Card>
-  )
+  );
 
   // Render feedback screen
   const renderFeedback = () => {
-    const isCorrect = selectedAnswer === currentQuestion.correctAnswer
+    const isCorrect = selectedAnswer === currentQuestion.correctAnswer;
 
     return (
       <Card className="w-full max-w-md">
-        <CardHeader className={`pb-2 text-center ${isCorrect ? "bg-green-50" : "bg-red-50"}`}>
+        <CardHeader
+          className={`pb-2 text-center ${isCorrect ? "bg-green-50" : "bg-red-50"}`}
+        >
           <div className="flex items-center justify-center gap-2">
             {isCorrect ? (
               <>
@@ -286,8 +303,12 @@ export default function DailyQuizPage() {
           </div>
 
           <div className="rounded-lg bg-green-50 p-3">
-            <p className="text-sm font-medium text-green-800">Correct definition:</p>
-            <p className="text-sm text-green-700">{currentQuestion.correctAnswer}</p>
+            <p className="text-sm font-medium text-green-800">
+              Correct definition:
+            </p>
+            <p className="text-sm text-green-700">
+              {currentQuestion.correctAnswer}
+            </p>
           </div>
 
           {!isCorrect && selectedAnswer && (
@@ -300,44 +321,52 @@ export default function DailyQuizPage() {
           {!selectedAnswer && (
             <div className="rounded-lg bg-amber-50 p-3">
               <p className="text-sm font-medium text-amber-800">Time's up!</p>
-              <p className="text-sm text-amber-700">You didn't select an answer in time.</p>
+              <p className="text-sm text-amber-700">
+                You didn't select an answer in time.
+              </p>
             </div>
           )}
         </CardContent>
         <CardFooter>
           <Button className="w-full" onClick={handleNextQuestion}>
-            {currentQuestionIndex < totalQuestions - 1 ? "Next Question" : "See Results"}
+            {currentQuestionIndex < totalQuestions - 1
+              ? "Next Question"
+              : "See Results"}
           </Button>
         </CardFooter>
       </Card>
-    )
-  }
+    );
+  };
 
   // Render summary screen
   const renderSummary = () => {
-    const percentage = (score / totalQuestions) * 100
-    let message = ""
+    const percentage = (score / totalQuestions) * 100;
+    let message = "";
 
     if (percentage >= 80) {
-      message = "Excellent! You have a strong vocabulary."
+      message = "Excellent! You have a strong vocabulary.";
     } else if (percentage >= 60) {
-      message = "Good job! Keep practicing to improve."
+      message = "Good job! Keep practicing to improve.";
     } else {
-      message = "Keep learning! Review the words you missed."
+      message = "Keep learning! Review the words you missed.";
     }
 
     return (
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Quiz Complete!</CardTitle>
-          <CardDescription>Here's how you performed on today's quiz</CardDescription>
+          <CardDescription>
+            Here's how you performed on today's quiz
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center justify-center">
             <div className="text-5xl font-bold">
               {score}/{totalQuestions}
             </div>
-            <p className="mt-2 text-muted-foreground">{percentage.toFixed(0)}% Correct</p>
+            <p className="mt-2 text-muted-foreground">
+              {percentage.toFixed(0)}% Correct
+            </p>
           </div>
 
           <div className="rounded-lg bg-muted p-4 text-center">
@@ -347,7 +376,10 @@ export default function DailyQuizPage() {
           <div className="space-y-3">
             <h3 className="font-medium">Question Summary</h3>
             {quizData.map((question, index) => (
-              <div key={index} className="flex items-center justify-between rounded-lg border p-3">
+              <div
+                key={index}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
                 <div className="flex-1">
                   <p className="font-medium">{question.word}</p>
                 </div>
@@ -378,8 +410,8 @@ export default function DailyQuizPage() {
           </Button>
         </CardFooter>
       </Card>
-    )
-  }
+    );
+  };
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
@@ -388,6 +420,5 @@ export default function DailyQuizPage() {
       {quizState === "feedback" && renderFeedback()}
       {quizState === "summary" && renderSummary()}
     </div>
-  )
+  );
 }
-

@@ -1,10 +1,10 @@
-import { initContract } from '@ts-rest/core';
-import { z } from 'zod';
+import { initContract } from "@ts-rest/core";
+import { z } from "zod";
 import {
   TopicSchema,
   CreateTopicRequest,
   UpdateTopicRequest,
-} from './topic.schemas';
+} from "./topic.schemas";
 import {
   UnauthorizedResponse,
   ValidationErrorResponse,
@@ -12,16 +12,16 @@ import {
   ConflictResponse,
   CursorPaginationQuery,
   CursorPaginationResponse,
-} from '../common/responses';
-import { HttpStatus } from 'src/common/http-status';
-import { FlashcardSchema } from 'src/flashcard/flashcard.schemas';
+} from "../common/responses";
+import { HttpStatus } from "src/common/http-status";
+import { FlashcardSchema } from "src/flashcard/flashcard.schemas";
 
 const c = initContract();
 
 export const topicContract = c.router({
   listMyTopics: {
-    method: 'GET',
-    path: '/topics/my',
+    method: "GET",
+    path: "/topics/my",
     summary: "Get current user's topics with cursor pagination",
     query: CursorPaginationQuery.extend({
       search: z.string().optional(),
@@ -33,9 +33,9 @@ export const topicContract = c.router({
   },
 
   listPublicTopics: {
-    method: 'GET',
-    path: '/topics/discover',
-    summary: 'List public topics with cursor pagination',
+    method: "GET",
+    path: "/topics/discover",
+    summary: "List public topics with cursor pagination",
     query: CursorPaginationQuery.extend({
       search: z.string().optional(),
     }),
@@ -45,9 +45,9 @@ export const topicContract = c.router({
   },
 
   getTopicById: {
-    method: 'GET',
-    path: '/topics/:id',
-    summary: 'Get topic detail',
+    method: "GET",
+    path: "/topics/:id",
+    summary: "Get topic detail",
     responses: {
       [HttpStatus.OK]: TopicSchema,
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
@@ -55,9 +55,9 @@ export const topicContract = c.router({
   },
 
   createTopic: {
-    method: 'POST',
-    path: '/topics',
-    summary: 'Create new topic',
+    method: "POST",
+    path: "/topics",
+    summary: "Create new topic",
     body: CreateTopicRequest,
     responses: {
       [HttpStatus.CREATED]: TopicSchema,
@@ -67,9 +67,9 @@ export const topicContract = c.router({
   },
 
   updateTopic: {
-    method: 'PUT',
-    path: '/topics/:id',
-    summary: 'Update topic',
+    method: "PUT",
+    path: "/topics/:id",
+    summary: "Update topic",
     body: UpdateTopicRequest,
     responses: {
       [HttpStatus.OK]: TopicSchema,
@@ -79,9 +79,9 @@ export const topicContract = c.router({
   },
 
   deleteTopic: {
-    method: 'DELETE',
-    path: '/topics/:id',
-    summary: 'Delete topic',
+    method: "DELETE",
+    path: "/topics/:id",
+    summary: "Delete topic",
     responses: {
       [HttpStatus.NO_CONTENT]: z.null(),
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
@@ -90,9 +90,9 @@ export const topicContract = c.router({
   },
 
   listTopicFlashcards: {
-    method: 'GET',
-    path: '/topics/:id/flashcards',
-    summary: 'List all flashcards in topic',
+    method: "GET",
+    path: "/topics/:id/flashcards",
+    summary: "List all flashcards in topic",
     query: z.object({
       limit: z.coerce.number().min(1).max(100).default(20),
       cursor: z.string().uuid().optional(),
@@ -107,10 +107,10 @@ export const topicContract = c.router({
   },
 
   uploadExcel: {
-    method: 'POST',
-    path: '/topics/:id/import',
-    summary: 'Import flashcards from Excel',
-    contentType: 'multipart/form-data',
+    method: "POST",
+    path: "/topics/:id/import",
+    summary: "Import flashcards from Excel",
+    contentType: "multipart/form-data",
     body: z.object({
       file: z.any(),
     }),
@@ -125,8 +125,8 @@ export const topicContract = c.router({
   },
 
   cloneTopic: {
-    method: 'POST',
-    path: '/topics/:id/clone',
+    method: "POST",
+    path: "/topics/:id/clone",
     summary: "Clone public topic to current user's private list",
     body: z.object({
       name: z.string().optional(),

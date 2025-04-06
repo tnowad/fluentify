@@ -1,5 +1,5 @@
-import { initContract } from '@ts-rest/core';
-import { z } from 'zod';
+import { initContract } from "@ts-rest/core";
+import { z } from "zod";
 import {
   UnauthorizedResponse,
   ValidationErrorResponse,
@@ -16,17 +16,17 @@ import {
   LogoutRequest,
   EmailVerificationRequest,
   ForgotPasswordRequest,
-  ResetPasswordRequest
-} from './auth.schemas';
-import { HttpStatus } from 'src/common/http-status';
+  ResetPasswordRequest,
+} from "./auth.schemas";
+import { HttpStatus } from "src/common/http-status";
 
 const c = initContract();
 
 export const authContract = c.router({
   login: {
-    method: 'POST',
-    path: '/auth/login',
-    summary: 'Login to the application',
+    method: "POST",
+    path: "/auth/login",
+    summary: "Login to the application",
     body: LoginRequest,
     responses: {
       [HttpStatus.OK]: AuthSuccessResponse,
@@ -35,9 +35,9 @@ export const authContract = c.router({
     },
   },
   register: {
-    method: 'POST',
-    path: '/auth/register',
-    summary: 'Register a new user',
+    method: "POST",
+    path: "/auth/register",
+    summary: "Register a new user",
     body: RegisterRequest,
     responses: {
       [HttpStatus.CREATED]: AuthSuccessResponse,
@@ -46,9 +46,9 @@ export const authContract = c.router({
     },
   },
   refresh: {
-    method: 'POST',
-    path: '/auth/refresh',
-    summary: 'Refresh access token',
+    method: "POST",
+    path: "/auth/refresh",
+    summary: "Refresh access token",
     body: RefreshRequest,
     responses: {
       [HttpStatus.OK]: TokenPairSchema,
@@ -56,18 +56,18 @@ export const authContract = c.router({
     },
   },
   me: {
-    method: 'GET',
-    path: '/auth/me',
-    summary: 'Get current user info',
+    method: "GET",
+    path: "/auth/me",
+    summary: "Get current user info",
     responses: {
       [HttpStatus.OK]: UserSchema,
       [HttpStatus.UNAUTHORIZED]: UnauthorizedResponse,
     },
   },
   logout: {
-    method: 'POST',
-    path: '/auth/logout',
-    summary: 'Logout user',
+    method: "POST",
+    path: "/auth/logout",
+    summary: "Logout user",
     body: LogoutRequest,
     responses: {
       [HttpStatus.NO_CONTENT]: z.null(),
@@ -75,9 +75,9 @@ export const authContract = c.router({
     },
   },
   verifyEmail: {
-    method: 'POST',
-    path: '/auth/verify-email',
-    summary: 'Verify email with token',
+    method: "POST",
+    path: "/auth/verify-email",
+    summary: "Verify email with token",
     body: EmailVerificationRequest,
     responses: {
       [HttpStatus.NO_CONTENT]: z.null(),
@@ -85,18 +85,18 @@ export const authContract = c.router({
     },
   },
   forgotPassword: {
-    method: 'POST',
-    path: '/auth/forgot-password',
-    summary: 'Send password reset email',
+    method: "POST",
+    path: "/auth/forgot-password",
+    summary: "Send password reset email",
     body: ForgotPasswordRequest,
     responses: {
       [HttpStatus.NO_CONTENT]: z.null(),
     },
   },
   resetPassword: {
-    method: 'POST',
-    path: '/auth/reset-password',
-    summary: 'Reset password with token',
+    method: "POST",
+    path: "/auth/reset-password",
+    summary: "Reset password with token",
     body: ResetPasswordRequest,
     responses: {
       [HttpStatus.NO_CONTENT]: z.null(),

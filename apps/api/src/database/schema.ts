@@ -13,11 +13,13 @@ export const WordsTableSchema = z.object({
   word: z.string(),
   main_phonetic: z.string().nullable(),
   phonetics: z.array(z.string()),
-  definitions: z.array(z.object({
-    definition: z.string(),
-    example: z.string().optional(),
-    partOfSpeech: z.string(),
-  })),
+  definitions: z.array(
+    z.object({
+      definition: z.string(),
+      example: z.string().optional(),
+      partOfSpeech: z.string(),
+    }),
+  ),
   examples: z.array(z.string()),
   synonyms: z.array(z.string()),
   audio_url: z.string().nullable(),
@@ -71,4 +73,3 @@ export interface DB {
   flashcards: FlashcardsTable;
   reviews: ReviewsTable;
 }
-

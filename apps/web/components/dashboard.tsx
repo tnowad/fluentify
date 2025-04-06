@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   BookOpen,
@@ -8,8 +8,8 @@ import {
   Settings,
   Trophy,
   User,
-} from 'lucide-react'
-import Link from 'next/link'
+} from "lucide-react";
+import Link from "next/link";
 
 import {
   Sidebar,
@@ -25,34 +25,33 @@ import {
   SidebarProvider,
   SidebarRail,
   SidebarTrigger,
-} from '@workspace/ui/components/sidebar'
+} from "@workspace/ui/components/sidebar";
 
 import {
   AlertTriangle,
   BarChart2,
-  Bell, CheckCircle,
+  Bell,
+  CheckCircle,
   Clock,
-  Flame
-} from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { getMeQueryOptions } from '@/lib/queries'
-import { useRouter } from 'next/navigation'
+  Flame,
+} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { getMeQueryOptions } from "@/lib/queries";
+import { useRouter } from "next/navigation";
 
 const mainMenu = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/daily-quiz', label: 'Daily Quiz', icon: Clock },
-  { href: '/discover', label: 'Discover', icon: Flame },
-  { href: '/how-do-i-say', label: 'How Do I Say', icon: BookOpen },
-  { href: '/notifications', label: 'Notifications', icon: Bell },
-  { href: '/progress', label: 'Progress', icon: BarChart2 },
-  { href: '/review', label: 'Review', icon: CheckCircle },
-  { href: '/weakness-report', label: 'Weakness Report', icon: AlertTriangle },
-  { href: '/words', label: 'Words', icon: BookOpen },
-  { href: '/achievements', label: 'Achievements', icon: Trophy },
-]
-const personalMenu = [
-  { href: '/settings', label: 'Settings', icon: Settings },
-]
+  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/daily-quiz", label: "Daily Quiz", icon: Clock },
+  { href: "/discover", label: "Discover", icon: Flame },
+  { href: "/how-do-i-say", label: "How Do I Say", icon: BookOpen },
+  { href: "/notifications", label: "Notifications", icon: Bell },
+  { href: "/progress", label: "Progress", icon: BarChart2 },
+  { href: "/review", label: "Review", icon: CheckCircle },
+  { href: "/weakness-report", label: "Weakness Report", icon: AlertTriangle },
+  { href: "/words", label: "Words", icon: BookOpen },
+  { href: "/achievements", label: "Achievements", icon: Trophy },
+];
+const personalMenu = [{ href: "/settings", label: "Settings", icon: Settings }];
 
 function RenderSidebarMenu({ items }: { items: typeof mainMenu }) {
   return (
@@ -68,17 +67,21 @@ function RenderSidebarMenu({ items }: { items: typeof mainMenu }) {
         </SidebarMenuItem>
       ))}
     </SidebarMenu>
-  )
+  );
 }
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
-  const { data: user, isLoading } = useQuery(getMeQueryOptions)
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const { data: user, isLoading } = useQuery(getMeQueryOptions);
 
-  if (isLoading) return null
+  if (isLoading) return null;
   if (!user) {
-    router.replace('/login')
-    return null
+    router.replace("/login");
+    return null;
   }
 
   return (
@@ -124,16 +127,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div>
               <h1 className="text-xl font-semibold">Dashboard</h1>
               <p className="text-sm text-muted-foreground">
-                Welcome back, {user?.name ?? 'Learner'}! Ready to continue learning?
+                Welcome back, {user?.name ?? "Learner"}! Ready to continue
+                learning?
               </p>
             </div>
             <SidebarTrigger className="lg:hidden" />
           </div>
-          <div className='container mx-auto p-6'>
-            {children}
-          </div>
+          <div className="container mx-auto p-6">{children}</div>
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }

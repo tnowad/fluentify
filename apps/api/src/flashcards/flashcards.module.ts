@@ -6,6 +6,6 @@ import { EbisuModule } from '../ebisu/ebisu.module';
 
 @Module({
   imports: [QdrantModule, ClickhouseModule, EbisuModule],
-  controllers: [FlashcardsController]
+  controllers: [FlashcardsController],
 })
-export class FlashcardsModule { }
+export class FlashcardsModule {}
