@@ -2,7 +2,6 @@ import {
   Controller,
   HttpStatus,
   Logger,
-  NotImplementedException,
   UseGuards,
 } from '@nestjs/common';
 import { TsRestHandler, TsRestException, tsRestHandler } from '@ts-rest/nest';
@@ -50,6 +49,7 @@ export class FlashcardsController {
     return tsRestHandler(flashcardContract, {
       listMyFlashcards: async ({ query }) => {
         const { topicId, limit, cursor } = query;
+        this.logger.log(`Fetching flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`);
 
         const builder = this.db
           .selectFrom('flashcards')
@@ -68,6 +68,7 @@ export class FlashcardsController {
           ? flashcards[flashcards.length - 1].id
           : null;
 
+        this.logger.log(`Fetched ${flashcards.length} flashcards`);
         return {
           status: HttpStatus.OK,
           body: {
@@ -86,16 +87,19 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!flashcard) {
+          this.logger.warn(`Flashcard with id ${params.id} not found for user ${user.id}`);
           throw new TsRestException(flashcardContract.getFlashcardById, {
             status: HttpStatus.NOT_FOUND,
             body: { error: 'Not Found', message: 'Flashcard not found' },
           });
         }
 
+        this.logger.log(`Fetched flashcard with id ${params.id}`);
         return { status: HttpStatus.OK, body: mapFlashcard(flashcard) };
       },
 
       createFlashcard: async ({ body }) => {
+        this.logger.log(`Creating flashcard for wordId ${body.wordId} and topicId ${body.topicId}`);
         const created = await this.db
           .insertInto('flashcards')
           .values({
@@ -113,6 +117,7 @@ export class FlashcardsController {
           .returningAll()
           .executeTakeFirstOrThrow();
 
+        this.logger.log(`Flashcard created with id ${created.id}`);
         return {
           status: HttpStatus.CREATED,
           body: mapFlashcard(created),
@@ -120,6 +125,7 @@ export class FlashcardsController {
       },
 
       updateFlashcard: async ({ params, body }) => {
+        this.logger.log(`Updating flashcard with id ${params.id}`);
         const updated = await this.db
           .updateTable('flashcards')
           .set({
@@ -131,16 +137,19 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!updated) {
+          this.logger.warn(`Flashcard with id ${params.id} not found or access denied`);
           throw new TsRestException(flashcardContract.updateFlashcard, {
             status: HttpStatus.NOT_FOUND,
             body: { error: 'Not Found', message: 'Flashcard not found or access denied' },
           });
         }
 
+        this.logger.log(`Flashcard with id ${params.id} updated successfully`);
         return { status: HttpStatus.OK, body: mapFlashcard(updated) };
       },
 
       deleteFlashcard: async ({ params }) => {
+        this.logger.log(`Deleting flashcard with id ${params.id}`);
         const deleted = await this.db
           .deleteFrom('flashcards')
           .where('id', '=', params.id)
@@ -149,17 +158,20 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!deleted) {
+          this.logger.warn(`Flashcard with id ${params.id} not found or access denied`);
           throw new TsRestException(flashcardContract.deleteFlashcard, {
             status: HttpStatus.NOT_FOUND,
             body: { error: 'Not Found', message: 'Flashcard not found or access denied' },
           });
         }
 
+        this.logger.log(`Flashcard with id ${params.id} deleted successfully`);
         return { status: HttpStatus.NO_CONTENT, body: null };
       },
 
       getDueFlashcards: async ({ query }) => {
         const { topicId, limit, cursor } = query;
+        this.logger.log(`Fetching due flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`);
 
         const builder = this.db
           .selectFrom('flashcards')
@@ -179,6 +191,7 @@ export class FlashcardsController {
           ? due[due.length - 1].id
           : null;
 
+        this.logger.log(`Fetched ${due.length} due flashcards`);
         return {
           status: HttpStatus.OK,
           body: {
@@ -193,6 +206,7 @@ export class FlashcardsController {
         const { id } = params;
         const { rating, responseTimeMs } = body;
 
+        this.logger.log(`Submitting review for flashcard with id ${id}, rating: ${rating}`);
         const card = await this.db
           .selectFrom('flashcards')
           .selectAll()
@@ -200,8 +214,8 @@ export class FlashcardsController {
           .where('user_id', '=', user.id)
           .executeTakeFirst();
 
-
         if (!card) {
+          this.logger.warn(`Flashcard with id ${id} not found or access denied`);
           throw new TsRestException(flashcardContract.submitReview, {
             status: HttpStatus.NOT_FOUND,
             body: { error: 'Not Found', message: 'Flashcard not found or access denied' },
@@ -209,23 +223,16 @@ export class FlashcardsController {
         }
 
         const lastReviewed = card.last_reviewed_at ?? now;
-        const elapsedDays =
-          (now.getTime() - lastReviewed.getTime()) / (24 * 60 * 60 * 1000);
+        const elapsedDays = (now.getTime() - lastReviewed.getTime()) / (86400000);
 
         const defaultModel: Model = this.ebisu.createModel(elapsedDays);
-
         const currentModel = card.ebisu_model ?? defaultModel;
 
         const successes = rating === 'forgot' ? 0 : 1;
         const total = 1;
-
         const newModel = this.ebisu.update(currentModel, successes, total, elapsedDays);
-
-        // Predict recall and next review interval
-        // const recallProbability = this.ebisu.predict(newModel, elapsedDays);
         const nextInterval = this.ebisu.getHalfLife(newModel, 0.5);
 
-        // Update the flashcard record in the database
         const updated = await this.db
           .updateTable('flashcards')
           .set({
@@ -246,32 +253,29 @@ export class FlashcardsController {
           .returningAll()
           .executeTakeFirstOrThrow();
 
-        // Insert review data into ClickHouse
-        // await this.clickhouse.insert({
-        //   table: 'flashcard_reviews',
-        //   values: [{
-        //     user_id: user.id,
-        //     word_id: card.word_id,
-        //     rating,
-        //     ease_factor: card.ease_factor,
-        //     interval_days: card.interval_days,
-        //     repetitions: card.repetitions,
-        //     response_time_ms: responseTimeMs,
-        //     reviewed_at: now.toISOString(),
-        //   }],
-        //   format: 'JSONEachRow',
-        // });
+        await this.clickhouse.insertReviewData(
+          user.id,
+          card.word_id,
+          rating,
+          card.ease_factor,
+          card.interval_days,
+          card.repetitions,
+          responseTimeMs,
+          now.toISOString(),
+        );
 
-        // const vector = await getVectorForWord(card.word_id);
-        // const similar = await qdrant.search('words', {
-        //   vector,
-        //   limit: 5,
-        //   with_payload: true,
-        // });
+        await this.qdrant.updateVector(
+          user.id,
+          card.word_id,
+          rating === 'forgot'
+            ? [0.1 * Math.min(responseTimeMs / 1000, 1), 0.0, 0.0]
+            : rating === 'hard'
+              ? [0.5 * Math.min(responseTimeMs / 1000, 1), 0.5 * Math.min(responseTimeMs / 1000, 1), 0.5 * Math.min(responseTimeMs / 1000, 1)]
+              : [1.0 * Math.min(responseTimeMs / 1000, 1), 1.0 * Math.min(responseTimeMs / 1000, 1), 1.0 * Math.min(responseTimeMs / 1000, 1)]
+        );
 
-        // this.logger.log(`Reviewed ${id}, Similar: ${similar.map(s => s.id).join(', ')}`);
-
-        return { status: 200, body: mapFlashcard(updated) };
+        this.logger.log(`Review submitted for flashcard ${id}`);
+        return { status: HttpStatus.OK, body: mapFlashcard(updated) };
       },
     });
   }
