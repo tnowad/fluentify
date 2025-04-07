@@ -1,3 +1,69 @@
+import { z } from 'zod';
+
+export const UsersTableSchema = z.object({
+  id: z.string(),
+  email: z.string().email(),
+  hashed_password: z.string(),
+  name: z.string(),
+  created_at: z.date(),
+});
+
+export const WordsTableSchema = z.object({
+  id: z.string(),
+  word: z.string(),
+  main_phonetic: z.string().nullable(),
+  phonetics: z.array(z.string()),
+  definitions: z.array(z.object({
+    definition: z.string(),
+    example: z.string().optional(),
+    partOfSpeech: z.string(),
+  })),
+  examples: z.array(z.string()),
+  synonyms: z.array(z.string()),
+  audio_url: z.string().nullable(),
+  origin: z.string().nullable(),
+  source: z.string(),
+  last_fetched_at: z.date(),
+});
+
+export const TopicsTableSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  is_public: z.boolean(),
+  created_by: z.string(),
+  created_at: z.date(),
+});
+
+export const FlashcardsTableSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  word_id: z.string(),
+  topic_id: z.string().nullable(),
+  status: z.enum(['new', 'learning', 'mastered']),
+  next_review_at: z.date(),
+  last_reviewed_at: z.date().nullable(),
+  ease_factor: z.number(),
+  interval_days: z.number(),
+  repetitions: z.number(),
+  ebisu_model: z.tuple([z.number(), z.number(), z.number()]).nullable(),
+});
+
+export const ReviewsTableSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  word_id: z.string(),
+  rating: z.enum(['forgot', 'hard', 'easy']),
+  response_time_ms: z.number(),
+  reviewed_at: z.date(),
+});
+
+export type UsersTable = z.infer<typeof UsersTableSchema>;
+export type WordsTable = z.infer<typeof WordsTableSchema>;
+export type TopicsTable = z.infer<typeof TopicsTableSchema>;
+export type FlashcardsTable = z.infer<typeof FlashcardsTableSchema>;
+export type ReviewsTable = z.infer<typeof ReviewsTableSchema>;
+
 export interface DB {
   users: UsersTable;
   words: WordsTable;
@@ -6,59 +72,3 @@ export interface DB {
   reviews: ReviewsTable;
 }
 
-interface UsersTable {
-  id: string;
-  email: string;
-  hashed_password: string;
-  name: string;
-  created_at: Date;
-}
-
-interface WordsTable {
-  id: string;
-  word: string;
-  main_phonetic: string | null;
-  phonetics: string[];
-  definitions: {
-    definition: string;
-    example?: string;
-    partOfSpeech: string;
-  }[];
-  examples: string[];
-  synonyms: string[];
-  audio_url: string | null;
-  origin?: string | null;
-  source: string;
-  last_fetched_at: Date;
-}
-
-interface TopicsTable {
-  id: string;
-  name: string;
-  description?: string;
-  is_public: boolean;
-  created_by: string;
-  created_at: Date;
-}
-
-interface FlashcardsTable {
-  id: string;
-  user_id: string;
-  word_id: string;
-  topic_id?: string;
-  status: 'new' | 'learning' | 'mastered';
-  next_review_at: Date;
-  last_reviewed_at: Date | null;
-  ease_factor: number;
-  interval_days: number;
-  repetitions: number;
-}
-
-interface ReviewsTable {
-  id: string;
-  user_id: string;
-  word_id: string;
-  rating: 'forgot' | 'hard' | 'easy';
-  response_time_ms: number;
-  reviewed_at: Date;
-}

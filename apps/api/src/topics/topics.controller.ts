@@ -10,6 +10,8 @@ import { topicContract } from '@workspace/contracts';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DatabaseService } from '../database/database.service';
 import { CurrentUser, UserPayload } from '../auth/current-user.decorator';
+import { randomUUID } from 'crypto';
+import { sql } from 'kysely';
 
 @Controller()
 export class TopicsController {
@@ -28,10 +30,12 @@ export class TopicsController {
         const topic = await this.db
           .insertInto('topics')
           .values({
+            id: randomUUID(),
             name: body.name,
             description: body.description,
             is_public: body.isPublic,
             created_by: user.id,
+            created_at: sql`now()`,
           })
           .returningAll()
           .executeTakeFirstOrThrow();
@@ -252,10 +256,12 @@ export class TopicsController {
         const clonedTopic = await this.db
           .insertInto('topics')
           .values({
+            id: randomUUID(),
             name: `${original.name} (Clone)`,
             description: original.description,
             is_public: false,
             created_by: user.id,
+            created_at: sql`now()`
           })
           .returningAll()
           .executeTakeFirstOrThrow();
@@ -269,6 +275,7 @@ export class TopicsController {
 
         for (const card of flashcards) {
           await this.db.insertInto('flashcards').values({
+            id: randomUUID(),
             user_id: user.id,
             word_id: card.word_id,
             topic_id: clonedTopic.id,

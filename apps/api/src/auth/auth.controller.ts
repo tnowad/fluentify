@@ -12,6 +12,8 @@ import { compare, hash } from 'bcryptjs';
 import { DatabaseService } from '../database/database.service';
 import { CurrentUser, UserPayload } from './current-user.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { randomUUID } from 'crypto';
+import { sql } from 'kysely';
 
 type JwtPayload = {
   sub: string;
@@ -26,7 +28,7 @@ export class AuthController {
   constructor(
     private readonly db: DatabaseService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   @TsRestHandler(authContract)
   handler() {
@@ -56,9 +58,11 @@ export class AuthController {
         const user = await this.db
           .insertInto('users')
           .values({
+            id: randomUUID(),
             name,
             email,
             hashed_password: hashedPassword,
+            created_at: sql`now()`,
           })
           .returning(['id', 'email', 'name'])
           .executeTakeFirstOrThrow();
@@ -176,7 +180,7 @@ export class AuthController {
               refreshToken: tokens.refreshToken,
             },
           };
-        } catch (err) {
+        } catch (err: any) {
           this.logger.warn(`Refresh token error: ${err}`);
           throw new TsRestException(authContract.refresh, {
             status: HttpStatus.UNAUTHORIZED,

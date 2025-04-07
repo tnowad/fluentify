@@ -5,6 +5,7 @@ import { tsRestHandler, TsRestHandler } from '@ts-rest/nest';
 import axios from 'axios';
 import { TsRestResponseError } from '@ts-rest/core';
 import { sql } from 'kysely';
+import { randomUUID } from 'crypto';
 
 export type DictionaryApiResponse = {
   word: string;
@@ -27,7 +28,7 @@ export type DictionaryApiResponse = {
 export class WordsController {
   private readonly logger = new Logger(WordsController.name);
 
-  constructor(private readonly db: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) { }
 
   @TsRestHandler(wordContract)
   handler() {
@@ -111,6 +112,7 @@ export class WordsController {
           const inserted = await this.db
             .insertInto('words')
             .values({
+              id: randomUUID(),
               word,
               main_phonetic,
               phonetics: sql`${JSON.stringify(phonetics)}`,
