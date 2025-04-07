@@ -1,6 +1,7 @@
 {
   "extends": "../../packages/typescript-config/base.json",
   "compilerOptions": {
+    "strict": true,
     "target": "ESNext",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
