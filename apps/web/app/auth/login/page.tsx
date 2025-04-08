@@ -7,7 +7,6 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { BookOpen, Eye, EyeOff, Mail } from "lucide-react";
-
 import { Button } from "@workspace/ui/components/button";
 import {
   Card,
@@ -36,12 +35,14 @@ import {
 } from "@/lib/constants";
 import { setCookie } from "cookies-next";
 import { toast } from "sonner";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { isDev } from "@/lib/env";
 
 const formSchema = LoginRequest.extend({
   rememberMe: z.boolean().default(false),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -63,8 +64,7 @@ export default function LoginPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: (data: z.infer<typeof formSchema>) =>
-      api.auth.login({ body: data }),
+    mutationFn: (data: FormValues) => api.auth.login({ body: data }),
     onSuccess: async (response) => {
       switch (response.status) {
         case HttpStatus.OK:

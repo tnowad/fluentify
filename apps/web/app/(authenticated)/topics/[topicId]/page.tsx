@@ -77,107 +77,6 @@ const WordSchema = z.object({
 
 type Word = z.infer<typeof WordSchema>;
 
-// Sample words data
-const wordsData: Word[] = [
-  {
-    id: "a23e4567-e89b-12d3-a456-426614174001",
-    word: "Agenda",
-    definition: "A list of items to be discussed at a meeting",
-    partOfSpeech: "noun",
-    example: "Let's review the agenda before we start the meeting.",
-    difficulty: "easy",
-    progress: 90,
-    lastReviewed: "2023-07-15T14:30:00Z",
-    status: "mastered",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-  {
-    id: "b23e4567-e89b-12d3-a456-426614174002",
-    word: "Minutes",
-    definition: "A written record of what was said and decided at a meeting",
-    partOfSpeech: "noun",
-    example: "The secretary will distribute the minutes after the meeting.",
-    difficulty: "medium",
-    progress: 75,
-    lastReviewed: "2023-07-10T09:15:00Z",
-    status: "reviewing",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-  {
-    id: "c23e4567-e89b-12d3-a456-426614174003",
-    word: "Facilitate",
-    definition: "To make a process or action easier",
-    partOfSpeech: "verb",
-    example: "The chairperson's role is to facilitate the discussion.",
-    difficulty: "hard",
-    progress: 60,
-    lastReviewed: "2023-07-05T16:45:00Z",
-    status: "learning",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-  {
-    id: "d23e4567-e89b-12d3-a456-426614174004",
-    word: "Adjourn",
-    definition: "To suspend a meeting until a later time",
-    partOfSpeech: "verb",
-    example: "We'll adjourn for lunch and continue the discussion at 2 PM.",
-    difficulty: "hard",
-    progress: 40,
-    lastReviewed: "2023-07-01T11:30:00Z",
-    status: "learning",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-  {
-    id: "e23e4567-e89b-12d3-a456-426614174005",
-    word: "Consensus",
-    definition: "General agreement among a group",
-    partOfSpeech: "noun",
-    example:
-      "We need to reach a consensus before moving forward with the project.",
-    difficulty: "medium",
-    progress: 80,
-    lastReviewed: "2023-07-12T13:20:00Z",
-    status: "reviewing",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-  {
-    id: "f23e4567-e89b-12d3-a456-426614174006",
-    word: "Brainstorm",
-    definition: "A group discussion to produce ideas or solve problems",
-    partOfSpeech: "verb",
-    example: "Let's brainstorm some solutions to this issue.",
-    difficulty: "easy",
-    progress: 95,
-    lastReviewed: "2023-07-14T10:45:00Z",
-    status: "mastered",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-  {
-    id: "g23e4567-e89b-12d3-a456-426614174007",
-    word: "Delegate",
-    definition: "To give a task or responsibility to someone else",
-    partOfSpeech: "verb",
-    example: "The manager will delegate tasks to team members.",
-    difficulty: "medium",
-    progress: 70,
-    lastReviewed: "2023-07-08T15:10:00Z",
-    status: "reviewing",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-  {
-    id: "h23e4567-e89b-12d3-a456-426614174008",
-    word: "Quorum",
-    definition: "The minimum number of members needed to conduct business",
-    partOfSpeech: "noun",
-    example: "We need at least 10 people to have a quorum for the vote.",
-    difficulty: "hard",
-    progress: 30,
-    lastReviewed: "2023-06-28T09:30:00Z",
-    status: "learning",
-    topicId: "123e4567-e89b-12d3-a456-426614174000",
-  },
-];
-
 export default function TopicDetailPage() {
   const { topicId } = useParams<{ topicId: string }>();
   const router = useRouter();
@@ -277,9 +176,6 @@ export default function TopicDetailPage() {
     setDifficultyFilter("all");
     setSortBy("alphabetical");
   };
-
-  // Toggle save topic
-  const toggleSaveTopic = () => {};
 
   if (isLoading) {
     return (

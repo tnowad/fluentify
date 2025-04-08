@@ -72,7 +72,7 @@ export default function TopicsPage() {
     isLoading: isLoadingMyTopics,
     isError: isErrorMyTopics,
   } = useInfiniteQuery({
-    queryKey: ["list-my-topics", debouncedSearchQuery],
+    queryKey: ["topics", "my", debouncedSearchQuery],
     queryFn: async ({ pageParam }) => {
       const response = await api.topic.listMyTopics({
         query: {
@@ -96,7 +96,7 @@ export default function TopicsPage() {
     isLoading: isLoadingPublicTopics,
     isError: isErrorPublicTopics,
   } = useInfiniteQuery({
-    queryKey: ["list-public-topics", debouncedSearchQuery],
+    queryKey: ["topics", "public", debouncedSearchQuery],
     queryFn: async ({ pageParam }) => {
       const response = await api.topic.listPublicTopics({
         query: {
