@@ -4,6 +4,7 @@ import {
   TopicSchema,
   CreateTopicRequest,
   UpdateTopicRequest,
+  TopicExtendedSchema,
 } from "./topic.schemas";
 import {
   UnauthorizedResponse,
@@ -49,7 +50,7 @@ export const topicContract = c.router({
     path: "/topics/:id",
     summary: "Get topic detail",
     responses: {
-      [HttpStatus.OK]: TopicSchema,
+      [HttpStatus.OK]: TopicExtendedSchema,
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
     },
   },
@@ -93,15 +94,9 @@ export const topicContract = c.router({
     method: "GET",
     path: "/topics/:id/flashcards",
     summary: "List all flashcards in topic",
-    query: z.object({
-      limit: z.coerce.number().min(1).max(100).default(20),
-      cursor: z.string().uuid().optional(),
-    }),
+    query: CursorPaginationQuery,
     responses: {
-      [HttpStatus.OK]: z.object({
-        items: z.array(FlashcardSchema),
-        nextCursor: z.string().uuid().nullable(),
-      }),
+      [HttpStatus.OK]: CursorPaginationResponse(FlashcardSchema),
       [HttpStatus.NOT_FOUND]: NotFoundResponse,
     },
   },

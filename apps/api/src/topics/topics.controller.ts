@@ -99,6 +99,28 @@ export class TopicsController {
           });
         }
 
+        const [countRes, progressRes, lastStudiedRes] = await Promise.all([
+          this.db
+            .selectFrom('flashcards')
+            .select((eb) => eb.fn.countAll().as('count'))
+            .where('topic_id', '=', topic.id)
+            .executeTakeFirst(),
+
+          this.db
+            .selectFrom('flashcards')
+            .select((eb) => eb.fn.avg('repetitions').as('progress'))
+            .where('topic_id', '=', topic.id)
+            .executeTakeFirst(),
+
+          this.db
+            .selectFrom('reviews')
+            .innerJoin('flashcards', 'flashcards.word_id', 'reviews.word_id')
+            .select((eb) => eb.fn.max('reviewed_at').as('lastStudiedAt'))
+            .where('flashcards.topic_id', '=', topic.id)
+            .where('reviews.user_id', '=', user.id)
+            .executeTakeFirst(),
+        ]);
+
         return {
           status: HttpStatus.OK,
           body: {
@@ -108,6 +130,11 @@ export class TopicsController {
             isPublic: topic.is_public,
             createdAt: topic.created_at.toISOString(),
             createdBy: topic.created_by,
+            count: Number(countRes?.count ?? 0),
+            progress: Number(progressRes?.progress ?? 0),
+            lastStudiedAt: lastStudiedRes?.lastStudiedAt
+              ? new Date(lastStudiedRes.lastStudiedAt).toISOString()
+              : null,
           },
         };
       },
@@ -319,18 +346,37 @@ export class TopicsController {
           });
         }
 
-        const builder = this.db
+        let builder = this.db
           .selectFrom('flashcards')
-          .selectAll()
-          .where('topic_id', '=', params.id)
-          .where('user_id', '=', user.id);
+          .innerJoin('words', 'flashcards.word_id', 'words.id')
+          .select([
+            'flashcards.id',
+            'flashcards.topic_id',
+            'flashcards.word_id',
+            'flashcards.user_id',
+            'flashcards.status',
+            'flashcards.next_review_at',
+            'flashcards.last_reviewed_at',
+            'flashcards.ease_factor',
+            'flashcards.interval_days',
+            'flashcards.repetitions',
+            'words.id as word_id',
+            'words.word',
+            'words.main_phonetic',
+            'words.definitions',
+            'words.examples',
+            'words.synonyms',
+            'words.audio_url',
+          ])
+          .where('flashcards.topic_id', '=', params.id)
+          .where('flashcards.user_id', '=', user.id);
 
         if (cursor) {
-          builder.where('id', '<', cursor);
+          builder = builder.where('flashcards.id', '<', cursor);
         }
 
         const flashcards = await builder
-          .orderBy('id', 'desc')
+          .orderBy('flashcards.id', 'desc')
           .limit(limit)
           .execute();
 
@@ -353,6 +399,15 @@ export class TopicsController {
               easeFactor: card.ease_factor,
               intervalDays: card.interval_days,
               repetitions: card.repetitions,
+              word: {
+                id: card.word_id,
+                word: card.word,
+                mainPhonetic: card.main_phonetic,
+                definitions: card.definitions,
+                examples: card.examples,
+                synonyms: card.synonyms,
+                audioUrl: card.audio_url,
+              },
             })),
             nextCursor,
           },

@@ -9,6 +9,12 @@ export const TopicSchema = z.object({
   createdAt: z.string().datetime(),
 });
 
+export const TopicExtendedSchema = TopicSchema.extend({
+  count: z.number().optional(),
+  progress: z.number().optional(),
+  lastStudiedAt: z.string().datetime().nullable(),
+});
+
 export const CreateTopicRequest = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
