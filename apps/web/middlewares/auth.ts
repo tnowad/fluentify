@@ -55,13 +55,13 @@ export async function handleAuth() {
       nextResponse.cookies.set(COOKIE_KEY_ACCESS_TOKEN, newAccessToken, {
         sameSite: 'none',
         secure: true,
-        httpOnly: true,
+        httpOnly: false,
         path: '/',
       });
       nextResponse.cookies.set(COOKIE_KEY_REFRESH_TOKEN, newRefreshToken, {
         sameSite: 'none',
         secure: true,
-        httpOnly: true,
+        httpOnly: false,
         path: '/',
       });
 

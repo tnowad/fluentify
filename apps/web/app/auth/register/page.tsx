@@ -60,8 +60,8 @@ export default function RegisterPage() {
       switch (response.status) {
         case HttpStatus.CREATED:
           const { accessToken, refreshToken } = response.body;
-          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { path: '/' });
-          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { path: '/' });
+          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { path: '/', httpOnly: false });
+          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { path: '/', httpOnly: false });
           toast("Account created successfully")
           router.push('/');
           return;

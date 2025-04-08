@@ -51,8 +51,8 @@ export default function LoginPage() {
       switch (response.status) {
         case HttpStatus.OK:
           const { accessToken, refreshToken } = response.body;
-          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken);
-          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken);
+          await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, { httpOnly: false });
+          await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, { httpOnly: false });
           toast("Login successful")
           router.push("/")
           break;
