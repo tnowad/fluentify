@@ -64,6 +64,7 @@ import { useForm } from "react-hook-form";
 import { isDev } from "@/lib/env";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
+import { z } from "zod";
 
 const formSchema = HowDoISayRequest;
 type FormValues = z.infer<typeof formSchema>;
@@ -129,12 +130,6 @@ export default function HowDoISayPage() {
   const onSubmit = form.handleSubmit((data) => {
     mutation.mutate(data);
   });
-
-  const loadHistoryItem = (item: HistoryItem) => {
-    setInputSentence(item.originalSentence);
-    setContext(item.context);
-    setShowHistory(false);
-  };
 
   const resetForm = () => {
     form.reset();
@@ -274,23 +269,20 @@ export default function HowDoISayPage() {
                           <Button
                             variant="ghost"
                             className="w-full justify-start px-2 py-1.5 text-left text-sm"
-                            onClick={() => loadHistoryItem(item)}
+                            onClick={() =>
+                              form.reset({
+                                context: item.context,
+                                originalSentence: item.originalSentence,
+                              })
+                            }
                           >
-                            <div className="flex w-full items-start gap-2">
-                              <Badge
-                                variant="outline"
-                                className="mt-0.5 shrink-0"
-                              >
+                            <div className="overflow-hidden">
+                              <p className="truncate font-medium">
+                                {item.originalSentence}
+                              </p>
+                              <p className="truncate text-xs text-muted-foreground">
                                 {item.context}
-                              </Badge>
-                              <div className="overflow-hidden">
-                                <p className="truncate font-medium">
-                                  {item.originalSentence}
-                                </p>
-                                <p className="truncate text-xs text-muted-foreground">
-                                  {item.translation}
-                                </p>
-                              </div>
+                              </p>
                             </div>
                           </Button>
                         </li>
@@ -603,8 +595,11 @@ export default function HowDoISayPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setInputSentence("Example business sentence");
-                        setContext("business");
+                        form.reset({
+                          originalSentence:
+                            "Tháng vừa qua tôi đã đi du lịch đến Nhật Bản.",
+                          context: "Nói chuyện với sếp về chuyến đi",
+                        });
                       }}
                     >
                       Business example
@@ -613,8 +608,11 @@ export default function HowDoISayPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setInputSentence("Example travel sentence");
-                        setContext("travel");
+                        form.reset({
+                          originalSentence:
+                            "Tôi đã đi du lịch đến Nhật Bản vào tháng trước.",
+                          context: "Nói chuyện với bạn bè về chuyến đi",
+                        });
                       }}
                     >
                       Travel example
@@ -623,8 +621,11 @@ export default function HowDoISayPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => {
-                        setInputSentence("Example general sentence");
-                        setContext("general");
+                        form.reset({
+                          originalSentence:
+                            "Tôi đã đi du lịch đến Nhật Bản vào tháng trước.",
+                          context: "Nói chuyện với bạn bè về chuyến đi",
+                        });
                       }}
                     >
                       General example
