@@ -7,85 +7,71 @@ import { getExpirationDate, isJwtExpired } from "@/lib/utils";
 import { HttpStatus } from "@workspace/contracts";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { Logger } from "@/lib/logger";
+
+const logger = new Logger("Middleware").child({ scope: "auth" });
 
 export async function handleAuth() {
   const cookieStore = await cookies();
   const accessToken = cookieStore.get(COOKIE_KEY_ACCESS_TOKEN)?.value;
   const refreshToken = cookieStore.get(COOKIE_KEY_REFRESH_TOKEN)?.value;
 
-  if (accessToken) {
-    console.log(
-      "[Middleware] Access Token:",
-      isJwtExpired(accessToken) ? "Expired" : "Valid",
-    );
-  } else {
-    console.log("[Middleware] Access Token: Not Present");
-  }
+  const accessValid = accessToken && !isJwtExpired(accessToken);
+  const refreshValid = refreshToken && !isJwtExpired(refreshToken);
 
-  if (refreshToken) {
-    console.log(
-      "[Middleware] Refresh Token:",
-      isJwtExpired(refreshToken) ? "Expired" : "Valid",
-    );
-  } else {
-    console.log("[Middleware] Refresh Token: Not Present");
-  }
+  logger.debug("Token check", {
+    accessPresent: !!accessToken,
+    accessValid,
+    refreshPresent: !!refreshToken,
+    refreshValid,
+  });
 
-  if (accessToken && !isJwtExpired(accessToken)) {
-    console.log("[Middleware] Access token is valid");
+  if (accessValid) {
+    logger.debug("Using valid access token");
     return NextResponse.next();
   }
 
-  if (refreshToken && !isJwtExpired(refreshToken)) {
-    console.log(
-      "[Middleware] Access token expired, attempting refresh with valid refresh token",
-    );
+  if (refreshValid) {
+    logger.info("Attempting token refresh");
     try {
       const response = await authApi.refresh({ body: { refreshToken } });
 
       if (response.status !== HttpStatus.OK) {
-        console.warn(
-          "[Middleware] Token refresh failed with status:",
-          response.status,
-        );
+        logger.warn("Token refresh failed", { status: response.status });
         return NextResponse.json(
           { message: "Failed to refresh token" },
           { status: response.status },
         );
       }
 
-      const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
+      const { accessToken: newAccess, refreshToken: newRefresh } =
         response.body;
-      console.log("[Middleware] Tokens successfully refreshed");
-
       const nextResponse = NextResponse.next();
-      nextResponse.cookies.set(COOKIE_KEY_ACCESS_TOKEN, newAccessToken, {
-        expires: getExpirationDate(newAccessToken),
+
+      nextResponse.cookies.set(COOKIE_KEY_ACCESS_TOKEN, newAccess, {
+        expires: getExpirationDate(newAccess),
         sameSite: "none",
         secure: true,
         httpOnly: false,
         path: "/",
       });
-      nextResponse.cookies.set(COOKIE_KEY_REFRESH_TOKEN, newRefreshToken, {
-        expires: getExpirationDate(newRefreshToken),
+      nextResponse.cookies.set(COOKIE_KEY_REFRESH_TOKEN, newRefresh, {
+        expires: getExpirationDate(newRefresh),
         sameSite: "none",
         secure: true,
         httpOnly: false,
         path: "/",
       });
 
+      logger.info("Token refresh successful, new tokens set");
       return nextResponse;
     } catch (err) {
-      console.error("[Middleware] Error during token refresh:", err);
-      return NextResponse.json(
-        { message: "Token refresh failed" },
-        { status: HttpStatus.INTERNAL_SERVER_ERROR },
-      );
+      logger.error("Token refresh threw error, continuing unauthenticated", {
+        error: err,
+      });
     }
   }
 
-  console.log(
-    "[Middleware] No valid access or refresh token found, proceeding without refreshing",
-  );
+  logger.warn("No valid tokens, continuing unauthenticated");
   return NextResponse.next();
 }
