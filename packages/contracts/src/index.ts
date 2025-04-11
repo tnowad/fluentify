@@ -4,6 +4,7 @@ import { wordContract } from "./word/word.contract";
 import { topicContract } from "./topic/topic.contract";
 import { flashcardContract } from "./flashcard/flashcard.contract";
 import { statisticContract } from "./statistic/statistic.contract";
+import { geminiContract } from "./gemini/gemini.contract";
 
 const c = initContract();
 
@@ -13,6 +14,7 @@ export const apiContracts = c.router({
   topic: topicContract,
   flashcard: flashcardContract,
   statistic: statisticContract,
+  gemini: geminiContract,
 });
 
 export * from "./common/responses";
@@ -27,3 +29,5 @@ export * from "./flashcard/flashcard.contract";
 export * from "./flashcard/flashcard.schemas";
 export * from "./statistic/statistic.contract";
 export * from "./statistic/statistic.schemas";
+export * from "./gemini/gemini.contract";
+export * from "./gemini/gemini.schemas";
