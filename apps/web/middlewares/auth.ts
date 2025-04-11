@@ -3,20 +3,10 @@ import {
   COOKIE_KEY_ACCESS_TOKEN,
   COOKIE_KEY_REFRESH_TOKEN,
 } from "@/lib/constants";
+import { getExpirationDate, isJwtExpired } from "@/lib/utils";
 import { HttpStatus } from "@workspace/contracts";
-import { jwtDecode } from "jwt-decode";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-
-const isJwtExpired = (token: string): boolean => {
-  try {
-    const { exp } = jwtDecode<{ exp: number }>(token);
-    return exp * 1000 < Date.now();
-  } catch (err) {
-    console.error("[Middleware] JWT decode error:", err);
-    return true;
-  }
-};
 
 export async function handleAuth() {
   const cookieStore = await cookies();
@@ -70,12 +60,14 @@ export async function handleAuth() {
 
       const nextResponse = NextResponse.next();
       nextResponse.cookies.set(COOKIE_KEY_ACCESS_TOKEN, newAccessToken, {
+        expires: getExpirationDate(newAccessToken),
         sameSite: "none",
         secure: true,
         httpOnly: false,
         path: "/",
       });
       nextResponse.cookies.set(COOKIE_KEY_REFRESH_TOKEN, newRefreshToken, {
+        expires: getExpirationDate(newRefreshToken),
         sameSite: "none",
         secure: true,
         httpOnly: false,

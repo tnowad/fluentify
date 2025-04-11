@@ -37,6 +37,7 @@ import { setCookie } from "cookies-next";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { isDev } from "@/lib/env";
+import { getExpirationDate } from "@/lib/utils";
 
 const formSchema = LoginRequest.extend({
   rememberMe: z.boolean().default(false),
@@ -70,10 +71,18 @@ export default function LoginPage() {
         case HttpStatus.OK:
           const { accessToken, refreshToken } = response.body;
           await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, {
+            expires: getExpirationDate(accessToken),
+            sameSite: "none",
+            secure: true,
             httpOnly: false,
+            path: "/",
           });
           await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, {
+            expires: getExpirationDate(refreshToken),
+            sameSite: "none",
+            secure: true,
             httpOnly: false,
+            path: "/",
           });
           toast("Login successful");
           router.push("/");
@@ -116,7 +125,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
       <div className="mb-4 flex items-center gap-2 text-2xl font-bold">
         <BookOpen className="h-6 w-6 text-primary" />
-        <span>TOEIC Master</span>
+        <span>Fluentify</span>
       </div>
 
       <Card className="w-full max-w-md">

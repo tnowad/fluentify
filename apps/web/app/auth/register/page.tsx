@@ -38,6 +38,7 @@ import {
 } from "@/lib/constants";
 import { setCookie } from "cookies-next";
 import { isDev } from "@/lib/env";
+import { getExpirationDate } from "@/lib/utils";
 
 const formSchema = RegisterRequest.extend({
   confirmPassword: z.string().min(6),
@@ -81,12 +82,18 @@ export default function RegisterPage() {
         case HttpStatus.CREATED:
           const { accessToken, refreshToken } = response.body;
           await setCookie(COOKIE_KEY_ACCESS_TOKEN, accessToken, {
-            path: "/",
+            expires: getExpirationDate(accessToken),
+            sameSite: "none",
+            secure: true,
             httpOnly: false,
+            path: "/",
           });
           await setCookie(COOKIE_KEY_REFRESH_TOKEN, refreshToken, {
-            path: "/",
+            expires: getExpirationDate(refreshToken),
+            sameSite: "none",
+            secure: true,
             httpOnly: false,
+            path: "/",
           });
           toast("Account created successfully");
           router.push("/");
@@ -131,7 +138,7 @@ export default function RegisterPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4">
       <div className="mb-4 flex items-center gap-2 text-2xl font-bold">
         <BookOpen className="h-6 w-6 text-primary" />
-        <span>TOEIC Master</span>
+        <span>Fluentify</span>
       </div>
 
       <Card className="w-full max-w-md">
