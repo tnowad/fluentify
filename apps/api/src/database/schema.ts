@@ -60,11 +60,21 @@ export const ReviewsTableSchema = z.object({
   reviewed_at: z.date(),
 });
 
+export const PromptHistoryTableSchema = z.object({
+  id: z.string(),
+  user_id: z.string(),
+  type: z.string(),
+  input: z.unknown(),
+  response: z.unknown(),
+  created_at: z.date(),
+});
+
 export type UsersTable = z.infer<typeof UsersTableSchema>;
 export type WordsTable = z.infer<typeof WordsTableSchema>;
 export type TopicsTable = z.infer<typeof TopicsTableSchema>;
 export type FlashcardsTable = z.infer<typeof FlashcardsTableSchema>;
 export type ReviewsTable = z.infer<typeof ReviewsTableSchema>;
+export type PromptHistoryTable = z.infer<typeof PromptHistoryTableSchema>;
 
 export interface DB {
   users: UsersTable;
@@ -72,4 +82,5 @@ export interface DB {
   topics: TopicsTable;
   flashcards: FlashcardsTable;
   reviews: ReviewsTable;
+  prompt_histories: PromptHistoryTable;
 }
