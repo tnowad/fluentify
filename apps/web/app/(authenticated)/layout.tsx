@@ -19,7 +19,7 @@ export default async function Layout({
   if (!user) redirect("/auth/login");
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <DashboardLayout>{children}</DashboardLayout>;
+      <DashboardLayout>{children}</DashboardLayout>
     </HydrationBoundary>
   );
 }

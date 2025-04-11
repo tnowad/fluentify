@@ -3,6 +3,7 @@
 import type React from "react";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
   Book,
@@ -12,7 +13,6 @@ import {
   History,
   Info,
   Lightbulb,
-  Loader2,
   MessageSquare,
   Plus,
   Redo,
@@ -50,201 +50,102 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@workspace/ui/components/form";
+import { HowDoISayRequest, HttpStatus } from "@workspace/contracts";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { isDev } from "@/lib/env";
+import { api } from "@/lib/api";
+import { toast } from "sonner";
 
-// Sample analysis result
-const sampleAnalysis = {
-  originalSentence: "我想在会议上讨论这个项目的预算",
-  translation:
-    "I would like to discuss the budget for this project at the meeting",
-  context: "business",
-  recipient: "colleague",
-  formality: "formal",
-  sentenceBreakdown: [
-    {
-      word: "我",
-      reading: "wǒ",
-      partOfSpeech: "pronoun",
-      meaning: "I",
-      notes: "Subject of the sentence",
-    },
-    {
-      word: "想",
-      reading: "xiǎng",
-      partOfSpeech: "verb",
-      meaning: "would like to",
-      notes: "Expresses desire or intention",
-    },
-    {
-      word: "在",
-      reading: "zài",
-      partOfSpeech: "preposition",
-      meaning: "at/in",
-      notes: "Indicates location",
-    },
-    {
-      word: "会议",
-      reading: "huì yì",
-      partOfSpeech: "noun",
-      meaning: "meeting",
-      notes: "Location where the discussion will take place",
-    },
-    {
-      word: "上",
-      reading: "shàng",
-      partOfSpeech: "postposition",
-      meaning: "on/at",
-      notes: "Used with 在 to indicate location",
-    },
-    {
-      word: "讨论",
-      reading: "tǎo lùn",
-      partOfSpeech: "verb",
-      meaning: "discuss",
-      notes: "Main action verb",
-    },
-    {
-      word: "这个",
-      reading: "zhè gè",
-      partOfSpeech: "determiner",
-      meaning: "this",
-      notes: "Demonstrative adjective",
-    },
-    {
-      word: "项目",
-      reading: "xiàng mù",
-      partOfSpeech: "noun",
-      meaning: "project",
-      notes: "Object being discussed",
-    },
-    {
-      word: "的",
-      reading: "de",
-      partOfSpeech: "particle",
-      meaning: "of",
-      notes: "Possessive particle connecting 项目 and 预算",
-    },
-    {
-      word: "预算",
-      reading: "yù suàn",
-      partOfSpeech: "noun",
-      meaning: "budget",
-      notes: "The specific topic of discussion",
-    },
-  ],
-  aboutSentence:
-    "This is a formal business sentence commonly used in workplace settings when you want to propose discussing financial aspects of a project during a meeting. It's direct and clear, which is appropriate for professional communication.",
-  grammar:
-    "This sentence follows the standard Subject-Verb-Object structure with prepositional phrases. The pattern is: Subject (我) + Verb of intention (想) + Prepositional phrase (在会议上) + Main verb (讨论) + Object (这个项目的预算). The possessive particle '的' is used to show that the budget belongs to or is associated with the project.",
-  keyVocabulary: [
-    {
-      word: "会议",
-      reading: "huì yì",
-      meaning: "meeting",
-      usage: "Formal gathering for discussion",
-    },
-    {
-      word: "讨论",
-      reading: "tǎo lùn",
-      meaning: "discuss",
-      usage: "To talk about a topic in detail",
-    },
-    {
-      word: "项目",
-      reading: "xiàng mù",
-      meaning: "project",
-      usage: "A planned piece of work",
-    },
-    {
-      word: "预算",
-      reading: "yù suàn",
-      meaning: "budget",
-      usage: "Plan for income and expenditure",
-    },
-  ],
-  alternativeExpressions: [
-    {
-      expression: "我们能谈谈这个项目的预算吗？",
-      translation: "Can we talk about the budget for this project?",
-      formality: "neutral",
-      notes: "More collaborative, asking for permission",
-    },
-    {
-      expression: "我需要和你讨论项目预算",
-      translation: "I need to discuss the project budget with you",
-      formality: "direct",
-      notes: "More urgent, emphasizes necessity",
-    },
-  ],
-};
-
-// Sample history items
-const historyItems = [
-  {
-    id: 1,
-    sentence: "我想在会议上讨论这个项目的预算",
-    translation:
-      "I would like to discuss the budget for this project at the meeting",
-    context: "business",
-  },
-  {
-    id: 2,
-    sentence: "请问附近有餐厅吗？",
-    translation: "Is there a restaurant nearby?",
-    context: "travel",
-  },
-  {
-    id: 3,
-    sentence: "我们可以改期吗？",
-    translation: "Can we reschedule?",
-    context: "general",
-  },
-];
+const formSchema = HowDoISayRequest;
+type FormValues = z.infer<typeof formSchema>;
 
 export default function HowDoISayPage() {
-  const [inputSentence, setInputSentence] = useState("");
-  const [context, setContext] = useState("business");
-  const [recipient, setRecipient] = useState("colleague");
-  const [formality, setFormality] = useState("formal");
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<
-    typeof sampleAnalysis | null
-  >(null);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputSentence.trim()) return;
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: isDev
+      ? {
+          originalSentence:
+            "Trống trải vùng núi bên trên, mười mấy tên thiếu niên áo trắng đang luyện kiếm, lóa mắt linh lực bao vây lấy trường kiếm, mũi kiếm vạch phá không khí, trên không trung chấn động không thôi.",
+          context: "Truyền tranh",
+        }
+      : {
+          originalSentence: "",
+          context: "business",
+        },
+  });
 
-    setIsAnalyzing(true);
+  const queryClient = useQueryClient();
 
-    // Simulate API call with a timeout
-    setTimeout(() => {
-      setAnalysisResult(sampleAnalysis);
-      setIsAnalyzing(false);
-    }, 1500);
-  };
+  const historyQuery = useQuery({
+    queryKey: ["how-do-i-say", "history"],
+    queryFn: async () => {
+      const response = await api.gemini.historyHowDoISay();
+      if (response.status !== HttpStatus.OK) {
+        throw new Error("Failed to fetch history");
+      }
+      return response.body;
+    },
+    enabled: showHistory,
+  });
 
-  // Load a history item
-  const loadHistoryItem = (item: (typeof historyItems)[0]) => {
-    setInputSentence(item.sentence);
+  const mutation = useMutation({
+    mutationFn: async (data: FormValues) => {
+      const response = await api.gemini.howDoISay({
+        body: data,
+      });
+      if (response.status !== HttpStatus.OK) {
+        throw new Error("Failed to analyze sentence");
+      }
+      return response.body;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sentenceHistory"] });
+
+      toast.success("Analysis complete", {
+        description: "Your sentence has been analyzed successfully.",
+      });
+    },
+    onError: (error) => {
+      toast.error("Analysis failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "There was an error analyzing your sentence. Please try again.",
+      });
+    },
+  });
+
+  const onSubmit = form.handleSubmit((data) => {
+    mutation.mutate(data);
+  });
+
+  const loadHistoryItem = (item: HistoryItem) => {
+    setInputSentence(item.originalSentence);
     setContext(item.context);
     setShowHistory(false);
   };
 
-  // Reset the form
   const resetForm = () => {
-    setInputSentence("");
-    setContext("business");
-    setRecipient("colleague");
-    setFormality("formal");
-    setAnalysisResult(null);
+    form.reset();
+    mutation.reset();
   };
 
-  // Copy text to clipboard
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    // In a real app, you would show a toast notification here
+    toast.success("Copied to clipboard", {
+      description: "Text has been copied to your clipboard.",
+    });
   };
 
   return (
@@ -273,90 +174,63 @@ export default function HowDoISayPage() {
                   Provide a sentence you want to translate and understand
                 </CardDescription>
               </CardHeader>
+
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="sentence">Sentence</Label>
-                    <Textarea
-                      id="sentence"
-                      placeholder="Enter the sentence you want to translate..."
-                      value={inputSentence}
-                      onChange={(e) => setInputSentence(e.target.value)}
-                      className="min-h-[100px]"
-                      required
+                <Form {...form}>
+                  <form onSubmit={onSubmit} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="originalSentence"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Label>Sentence</Label>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Enter the sentence you want to translate..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="context">Context (Optional)</Label>
-                    <Select value={context} onValueChange={setContext}>
-                      <SelectTrigger id="context">
-                        <SelectValue placeholder="Select context" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="business">Business</SelectItem>
-                        <SelectItem value="travel">Travel</SelectItem>
-                        <SelectItem value="academic">Academic</SelectItem>
-                        <SelectItem value="social">Social</SelectItem>
-                        <SelectItem value="general">General</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <p className="text-xs text-muted-foreground">
-                      Helps provide more accurate translations
-                    </p>
-                  </div>
+                    <FormField
+                      control={form.control}
+                      name="context"
+                      render={({ field }) => (
+                        <FormItem>
+                          <Label>Context</Label>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Provide any additional context..."
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                  <div className="space-y-2">
-                    <Label htmlFor="recipient">Recipient (Optional)</Label>
-                    <Select value={recipient} onValueChange={setRecipient}>
-                      <SelectTrigger id="recipient">
-                        <SelectValue placeholder="Select recipient" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="colleague">Colleague</SelectItem>
-                        <SelectItem value="boss">Boss/Superior</SelectItem>
-                        <SelectItem value="client">Client</SelectItem>
-                        <SelectItem value="friend">Friend</SelectItem>
-                        <SelectItem value="stranger">Stranger</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="formality">
-                      Formality Level (Optional)
-                    </Label>
-                    <Select value={formality} onValueChange={setFormality}>
-                      <SelectTrigger id="formality">
-                        <SelectValue placeholder="Select formality" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="formal">Formal</SelectItem>
-                        <SelectItem value="neutral">Neutral</SelectItem>
-                        <SelectItem value="informal">Informal</SelectItem>
-                        <SelectItem value="casual">Casual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={!inputSentence.trim() || isAnalyzing}
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <ArrowRight className="mr-2 h-4 w-4" />
-                        Analyze Sentence
-                      </>
-                    )}
-                  </Button>
-                </form>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={mutation.isPending}
+                    >
+                      {mutation.isPending ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="mr-2 h-4 w-4" />
+                          Analyze Sentence
+                        </>
+                      )}
+                    </Button>
+                  </form>
+                </Form>
               </CardContent>
               <CardFooter className="flex justify-between border-t px-6 py-4">
                 <Button
@@ -381,34 +255,48 @@ export default function HowDoISayPage() {
                   <CardTitle className="text-base">Recent Sentences</CardTitle>
                 </CardHeader>
                 <CardContent className="px-6 py-0">
-                  <ul className="space-y-2">
-                    {historyItems.map((item) => (
-                      <li key={item.id}>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start px-2 py-1.5 text-left text-sm"
-                          onClick={() => loadHistoryItem(item)}
-                        >
-                          <div className="flex w-full items-start gap-2">
-                            <Badge
-                              variant="outline"
-                              className="mt-0.5 shrink-0"
-                            >
-                              {item.context}
-                            </Badge>
-                            <div className="overflow-hidden">
-                              <p className="truncate font-medium">
-                                {item.sentence}
-                              </p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {item.translation}
-                              </p>
+                  {historyQuery.isPending ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                  ) : historyQuery.isError ? (
+                    <div className="py-4 text-center text-sm text-muted-foreground">
+                      Error loading history. Please try again.
+                    </div>
+                  ) : historyQuery.data?.length === 0 ? (
+                    <div className="py-4 text-center text-sm text-muted-foreground">
+                      No history found. Analyze some sentences to see them here.
+                    </div>
+                  ) : (
+                    <ul className="space-y-2">
+                      {historyQuery.data?.map((item) => (
+                        <li key={item.id}>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start px-2 py-1.5 text-left text-sm"
+                            onClick={() => loadHistoryItem(item)}
+                          >
+                            <div className="flex w-full items-start gap-2">
+                              <Badge
+                                variant="outline"
+                                className="mt-0.5 shrink-0"
+                              >
+                                {item.context}
+                              </Badge>
+                              <div className="overflow-hidden">
+                                <p className="truncate font-medium">
+                                  {item.originalSentence}
+                                </p>
+                                <p className="truncate text-xs text-muted-foreground">
+                                  {item.translation}
+                                </p>
+                              </div>
                             </div>
-                          </div>
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </CardContent>
                 <CardFooter className="border-t px-6 py-3">
                   <Button variant="ghost" size="sm" className="w-full">
@@ -421,20 +309,38 @@ export default function HowDoISayPage() {
 
           {/* Results section */}
           <div className="md:col-span-2">
-            {analysisResult ? (
+            {mutation.isPending ? (
+              <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed p-12 text-center">
+                <div className="mb-4 h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                <h3 className="mb-2 text-lg font-medium">
+                  Analyzing your sentence...
+                </h3>
+                <p className="max-w-md text-sm text-muted-foreground">
+                  We're processing your request. This may take a moment.
+                </p>
+              </div>
+            ) : mutation.isError ? (
+              <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-destructive p-12 text-center">
+                <HelpCircle className="mb-4 h-12 w-12 text-destructive" />
+                <h3 className="mb-2 text-lg font-medium">Analysis failed</h3>
+                <p className="mb-4 max-w-md text-sm text-muted-foreground">
+                  There was an error analyzing your sentence. Please try again
+                  or contact support if the issue persists.
+                </p>
+                <Button onClick={resetForm} variant="outline">
+                  Try Again
+                </Button>
+              </div>
+            ) : mutation.data ? (
               <div className="space-y-6">
                 {/* Original and translation */}
                 <Card>
                   <CardHeader>
                     <CardTitle>Translation Result</CardTitle>
                     <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">{analysisResult.context}</Badge>
-                      <Badge variant="outline">
-                        {analysisResult.recipient}
-                      </Badge>
-                      <Badge variant="outline">
-                        {analysisResult.formality}
-                      </Badge>
+                      <Badge variant="outline">{mutation.data.context}</Badge>
+                      <Badge variant="outline">{mutation.data.recipient}</Badge>
+                      <Badge variant="outline">{mutation.data.formality}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -444,14 +350,14 @@ export default function HowDoISayPage() {
                       </Label>
                       <div className="mt-1 flex items-start justify-between rounded-md border p-3">
                         <p className="text-lg font-medium">
-                          {analysisResult.originalSentence}
+                          {mutation.data.originalSentence}
                         </p>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
                           onClick={() =>
-                            copyToClipboard(analysisResult.originalSentence)
+                            copyToClipboard(mutation.data.originalSentence)
                           }
                         >
                           <Copy className="h-4 w-4" />
@@ -465,14 +371,14 @@ export default function HowDoISayPage() {
                       </Label>
                       <div className="mt-1 flex items-start justify-between rounded-md border p-3">
                         <p className="text-lg font-medium">
-                          {analysisResult.translation}
+                          {mutation.data.translation}
                         </p>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8"
                           onClick={() =>
-                            copyToClipboard(analysisResult.translation)
+                            copyToClipboard(mutation.data.translation)
                           }
                         >
                           <Copy className="h-4 w-4" />
@@ -497,7 +403,7 @@ export default function HowDoISayPage() {
                   <CardContent>
                     <div className="overflow-x-auto">
                       <div className="inline-flex flex-wrap gap-2 pb-2">
-                        {analysisResult.sentenceBreakdown.map((word, index) => (
+                        {mutation.data.sentenceBreakdown.map((word, index) => (
                           <TooltipProvider key={index}>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -555,13 +461,13 @@ export default function HowDoISayPage() {
                       </CardHeader>
                       <CardContent>
                         <p className="leading-relaxed">
-                          {analysisResult.aboutSentence}
+                          {mutation.data.aboutSentence}
                         </p>
 
                         <div className="mt-6">
                           <h4 className="mb-2 font-medium">Key Vocabulary</h4>
                           <div className="space-y-2">
-                            {analysisResult.keyVocabulary.map((item, index) => (
+                            {mutation.data.keyVocabulary.map((item, index) => (
                               <div
                                 key={index}
                                 className="flex items-start rounded-md border p-3"
@@ -598,7 +504,7 @@ export default function HowDoISayPage() {
                       </CardHeader>
                       <CardContent>
                         <p className="leading-relaxed">
-                          {analysisResult.grammar}
+                          {mutation.data.grammar}
                         </p>
 
                         <div className="mt-6 rounded-md bg-muted p-4">
@@ -607,8 +513,7 @@ export default function HowDoISayPage() {
                             <h4 className="font-medium">Grammar Pattern</h4>
                           </div>
                           <p className="mt-2 text-sm">
-                            Subject + Verb of intention + Prepositional phrase +
-                            Main verb + Object
+                            Subject + Verb + Object (example pattern)
                           </p>
                           <div className="mt-3 flex flex-wrap gap-2">
                             <Badge variant="outline" className="bg-blue-50">
@@ -616,12 +521,6 @@ export default function HowDoISayPage() {
                             </Badge>
                             <Badge variant="outline" className="bg-green-50">
                               Verb
-                            </Badge>
-                            <Badge variant="outline" className="bg-purple-50">
-                              Prep. Phrase
-                            </Badge>
-                            <Badge variant="outline" className="bg-green-50">
-                              Main Verb
                             </Badge>
                             <Badge variant="outline" className="bg-orange-50">
                               Object
@@ -645,7 +544,7 @@ export default function HowDoISayPage() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-4">
-                          {analysisResult.alternativeExpressions.map(
+                          {mutation.data.alternativeExpressions.map(
                             (alt, index) => (
                               <div
                                 key={index}
@@ -693,22 +592,43 @@ export default function HowDoISayPage() {
                   Enter a sentence to analyze
                 </h3>
                 <p className="mb-4 max-w-md text-sm text-muted-foreground">
-                  Type a sentence in the input field and click "Analyze
-                  Sentence" to see a detailed breakdown and translation.
+                  Type a sentence in the input field, select a context, and
+                  click "Analyze Sentence" to see a detailed breakdown and
+                  translation.
                 </p>
                 <div className="flex flex-col gap-2">
                   <p className="text-sm font-medium">Try these examples:</p>
                   <div className="flex flex-wrap justify-center gap-2">
-                    {historyItems.map((item) => (
-                      <Button
-                        key={item.id}
-                        variant="outline"
-                        size="sm"
-                        onClick={() => loadHistoryItem(item)}
-                      >
-                        {item.sentence}
-                      </Button>
-                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setInputSentence("Example business sentence");
+                        setContext("business");
+                      }}
+                    >
+                      Business example
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setInputSentence("Example travel sentence");
+                        setContext("travel");
+                      }}
+                    >
+                      Travel example
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setInputSentence("Example general sentence");
+                        setContext("general");
+                      }}
+                    >
+                      General example
+                    </Button>
                   </div>
                 </div>
               </div>

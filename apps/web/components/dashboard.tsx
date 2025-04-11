@@ -3,11 +3,9 @@
 import {
   BookOpen,
   LayoutDashboard,
-  LineChart,
   LogOut,
   Settings,
   Trophy,
-  User,
 } from "lucide-react";
 import Link from "next/link";
 
