@@ -9,6 +9,7 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('user_id', 'uuid', (col) => col.notNull())
     .addColumn('type', 'varchar(50)', (col) => col.notNull())
     .addColumn('input', 'jsonb', (col) => col.notNull())
+    .addColumn('input_hash', 'varchar(100)', (col) => col.notNull())
     .addColumn('response', 'jsonb', (col) => col.notNull())
     .addColumn('created_at', 'timestamptz', (col) =>
       col.notNull().defaultTo(sql`now()`),

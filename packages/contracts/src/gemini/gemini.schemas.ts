@@ -5,7 +5,11 @@ export const SentenceBreakdownSchema = z.object({
   reading: z.string().describe("Phonetic reading or pronunciation"),
   partOfSpeech: z.string().describe("Part of speech (e.g., noun, verb)"),
   meaning: z.string().describe("English meaning of the word/phrase"),
-  notes: z.string().optional().describe("Additional context or usage notes"),
+  notes: z
+    .string()
+    .optional()
+    .nullable()
+    .describe("Additional context or usage notes"),
 });
 
 export const KeyVocabularySchema = z.object({

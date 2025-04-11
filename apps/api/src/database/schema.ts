@@ -65,6 +65,7 @@ export const PromptHistoryTableSchema = z.object({
   user_id: z.string(),
   type: z.string(),
   input: z.unknown(),
+  input_hash: z.string(),
   response: z.unknown(),
   created_at: z.date(),
 });
