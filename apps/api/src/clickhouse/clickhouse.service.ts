@@ -43,7 +43,7 @@ export class ClickhouseService {
 
   async insertReviewData(
     userId: string,
-    wordId: string,
+    flashcardId: string,
     rating: string,
     easeFactor: number,
     intervalDays: number,
@@ -54,7 +54,7 @@ export class ClickhouseService {
     return this.insert('flashcard_reviews', [
       {
         user_id: userId,
-        word_id: wordId,
+        flashcard_id: flashcardId,
         rating,
         ease_factor: easeFactor,
         interval_days: intervalDays,

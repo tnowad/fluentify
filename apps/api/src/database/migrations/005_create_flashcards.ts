@@ -7,7 +7,6 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn('user_id', 'uuid', (col) => col.notNull())
-    .addColumn('word_id', 'uuid', (col) => col.notNull())
     .addColumn('topic_id', 'uuid')
     .addColumn('status', 'varchar(20)', (col) =>
       col.notNull().check(sql`status IN ('new', 'learning', 'mastered')`),
@@ -18,17 +17,21 @@ export async function up(db: Kysely<any>): Promise<void> {
     .addColumn('interval_days', 'int4', (col) => col.notNull().defaultTo(0))
     .addColumn('repetitions', 'int4', (col) => col.notNull().defaultTo(0))
     .addColumn('ebisu_model', 'jsonb')
+
+    .addColumn('word', 'text', (col) => col.notNull())
+    .addColumn('definition', 'text', (col) => col.notNull())
+    .addColumn('image_url', 'text')
+    .addColumn('part_of_speech', 'text')
+    .addColumn('phonetic', 'text')
+    .addColumn('examples', 'jsonb', (col) =>
+      col.notNull().defaultTo(sql`'[]'::jsonb`),
+    )
+    .addColumn('note', 'text')
+
     .addForeignKeyConstraint(
       'flashcards_user_id_fkey',
       ['user_id'],
       'users',
-      ['id'],
-      (fk) => fk.onDelete('cascade'),
-    )
-    .addForeignKeyConstraint(
-      'flashcards_word_id_fkey',
-      ['word_id'],
-      'words',
       ['id'],
       (fk) => fk.onDelete('cascade'),
     )

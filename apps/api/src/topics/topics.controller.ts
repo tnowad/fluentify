@@ -104,17 +104,19 @@ export class TopicsController {
             .selectFrom('flashcards')
             .select((eb) => eb.fn.countAll().as('count'))
             .where('topic_id', '=', topic.id)
+            .where('user_id', '=', user.id)
             .executeTakeFirst(),
 
           this.db
             .selectFrom('flashcards')
             .select((eb) => eb.fn.avg('repetitions').as('progress'))
             .where('topic_id', '=', topic.id)
+            .where('user_id', '=', user.id)
             .executeTakeFirst(),
 
           this.db
             .selectFrom('reviews')
-            .innerJoin('flashcards', 'flashcards.word_id', 'reviews.word_id')
+            .innerJoin('flashcards', 'flashcards.id', 'reviews.flashcard_id')
             .select((eb) => eb.fn.max('reviewed_at').as('lastStudiedAt'))
             .where('flashcards.topic_id', '=', topic.id)
             .where('reviews.user_id', '=', user.id)
@@ -302,7 +304,6 @@ export class TopicsController {
             .values({
               id: randomUUID(),
               user_id: user.id,
-              word_id: card.word_id,
               topic_id: clonedTopic.id,
               status: 'new',
               next_review_at: new Date(),
@@ -310,6 +311,15 @@ export class TopicsController {
               ease_factor: 2.5,
               interval_days: 0,
               repetitions: 0,
+              ebisu_model: null,
+
+              word: card.word,
+              definition: card.definition,
+              image_url: card.image_url,
+              part_of_speech: card.part_of_speech,
+              phonetic: card.phonetic,
+              examples: card.examples,
+              note: card.note,
             })
             .execute();
         }
@@ -348,35 +358,16 @@ export class TopicsController {
 
         let builder = this.db
           .selectFrom('flashcards')
-          .innerJoin('words', 'flashcards.word_id', 'words.id')
-          .select([
-            'flashcards.id',
-            'flashcards.topic_id',
-            'flashcards.word_id',
-            'flashcards.user_id',
-            'flashcards.status',
-            'flashcards.next_review_at',
-            'flashcards.last_reviewed_at',
-            'flashcards.ease_factor',
-            'flashcards.interval_days',
-            'flashcards.repetitions',
-            'words.id as word_id',
-            'words.word',
-            'words.main_phonetic',
-            'words.definitions',
-            'words.examples',
-            'words.synonyms',
-            'words.audio_url',
-          ])
-          .where('flashcards.topic_id', '=', params.id)
-          .where('flashcards.user_id', '=', user.id);
+          .selectAll()
+          .where('topic_id', '=', params.id)
+          .where('user_id', '=', user.id);
 
         if (cursor) {
-          builder = builder.where('flashcards.id', '<', cursor);
+          builder = builder.where('id', '<', cursor);
         }
 
         const flashcards = await builder
-          .orderBy('flashcards.id', 'desc')
+          .orderBy('id', 'desc')
           .limit(limit)
           .execute();
 
@@ -391,7 +382,6 @@ export class TopicsController {
             items: flashcards.map((card) => ({
               id: card.id,
               topicId: card.topic_id,
-              wordId: card.word_id,
               userId: card.user_id,
               status: card.status,
               nextReviewAt: card.next_review_at.toISOString(),
@@ -399,15 +389,14 @@ export class TopicsController {
               easeFactor: card.ease_factor,
               intervalDays: card.interval_days,
               repetitions: card.repetitions,
-              word: {
-                id: card.word_id,
-                word: card.word,
-                mainPhonetic: card.main_phonetic,
-                definitions: card.definitions,
-                examples: card.examples,
-                synonyms: card.synonyms,
-                audioUrl: card.audio_url,
-              },
+
+              word: card.word,
+              definition: card.definition,
+              imageUrl: card.image_url,
+              partOfSpeech: card.part_of_speech,
+              phonetic: card.phonetic,
+              examples: card.examples,
+              note: card.note,
             })),
             nextCursor,
           },

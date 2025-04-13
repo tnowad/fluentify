@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DatabaseService } from '../database/database.service';
 import { CurrentUser, UserPayload } from '../auth/current-user.decorator';
 import { randomUUID } from 'crypto';
-import { FlashcardsTableSchema } from '../database/schema';
+import { FlashcardsTable, FlashcardsTableSchema } from '../database/schema';
 import { z } from 'zod';
 import { EbisuService } from '../ebisu/ebisu.service';
 import { ClickhouseService } from '../clickhouse/clickhouse.service';
@@ -18,7 +18,6 @@ function mapFlashcard(
   return {
     id: input.id,
     userId: input.user_id,
-    wordId: input.word_id,
     topicId: input.topic_id,
     status: input.status,
     easeFactor: input.ease_factor,
@@ -26,6 +25,13 @@ function mapFlashcard(
     repetitions: input.repetitions,
     nextReviewAt: input.next_review_at.toISOString(),
     lastReviewedAt: input.last_reviewed_at?.toISOString() ?? null,
+    definition: input.definition,
+    word: input.word,
+    imageUrl: input.image_url,
+    partOfSpeech: input.part_of_speech,
+    phonetic: input.phonetic,
+    examples: input.examples,
+    note: input.note,
   };
 }
 
@@ -47,7 +53,7 @@ export class FlashcardsController {
       listMyFlashcards: async ({ query }) => {
         const { topicId, limit, cursor } = query;
         this.logger.log(
-          `Fetching flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`,
+          `Listing flashcards for user ${user.id} with topicId: ${topicId}, limit: ${limit}, cursor: ${cursor}`,
         );
 
         const builder = this.db
@@ -68,7 +74,6 @@ export class FlashcardsController {
             ? flashcards[flashcards.length - 1].id
             : null;
 
-        this.logger.log(`Fetched ${flashcards.length} flashcards`);
         return {
           status: HttpStatus.OK,
           body: {
@@ -88,40 +93,49 @@ export class FlashcardsController {
 
         if (!flashcard) {
           this.logger.warn(
-            `Flashcard with id ${params.id} not found for user ${user.id}`,
+            `Flashcard not found or access denied: ${params.id}`,
           );
           throw new TsRestException(flashcardContract.getFlashcardById, {
             status: HttpStatus.NOT_FOUND,
-            body: { error: 'Not Found', message: 'Flashcard not found' },
+            body: {
+              error: 'Not Found',
+              message: 'Flashcard not found or access denied',
+            },
           });
         }
 
-        this.logger.log(`Fetched flashcard with id ${params.id}`);
-        return { status: HttpStatus.OK, body: mapFlashcard(flashcard) };
+        return {
+          status: HttpStatus.OK,
+          body: mapFlashcard(flashcard),
+        };
       },
 
       createFlashcard: async ({ body }) => {
-        this.logger.log(
-          `Creating flashcard for wordId ${body.wordId} and topicId ${body.topicId}`,
-        );
+        const newFlashcard = {
+          id: randomUUID(),
+          user_id: user.id,
+          topic_id: body.topicId ?? null,
+          status: 'new' as const,
+          ease_factor: 2.5,
+          interval_days: 0,
+          repetitions: 0,
+          next_review_at: new Date(),
+          last_reviewed_at: null,
+          examples: body.examples ?? [],
+          word: body.word,
+          definition: body.definition,
+          image_url: body.imageUrl ?? null,
+          part_of_speech: body.partOfSpeech ?? null,
+          phonetic: body.phonetic ?? null,
+          note: body.note ?? '',
+        };
+
         const created = await this.db
           .insertInto('flashcards')
-          .values({
-            id: randomUUID(),
-            user_id: user.id,
-            word_id: body.wordId,
-            topic_id: body.topicId ?? null,
-            status: 'new',
-            ease_factor: 2.5,
-            interval_days: 0,
-            repetitions: 0,
-            next_review_at: new Date(),
-            last_reviewed_at: null,
-          })
+          .values(newFlashcard)
           .returningAll()
           .executeTakeFirstOrThrow();
 
-        this.logger.log(`Flashcard created with id ${created.id}`);
         return {
           status: HttpStatus.CREATED,
           body: mapFlashcard(created),
@@ -129,12 +143,9 @@ export class FlashcardsController {
       },
 
       updateFlashcard: async ({ params, body }) => {
-        this.logger.log(`Updating flashcard with id ${params.id}`);
         const updated = await this.db
           .updateTable('flashcards')
-          .set({
-            ...body,
-          })
+          .set(body)
           .where('id', '=', params.id)
           .where('user_id', '=', user.id)
           .returningAll()
@@ -142,7 +153,7 @@ export class FlashcardsController {
 
         if (!updated) {
           this.logger.warn(
-            `Flashcard with id ${params.id} not found or access denied`,
+            `Flashcard not found or access denied: ${params.id}`,
           );
           throw new TsRestException(flashcardContract.updateFlashcard, {
             status: HttpStatus.NOT_FOUND,
@@ -153,12 +164,13 @@ export class FlashcardsController {
           });
         }
 
-        this.logger.log(`Flashcard with id ${params.id} updated successfully`);
-        return { status: HttpStatus.OK, body: mapFlashcard(updated) };
+        return {
+          status: HttpStatus.OK,
+          body: mapFlashcard(updated),
+        };
       },
 
       deleteFlashcard: async ({ params }) => {
-        this.logger.log(`Deleting flashcard with id ${params.id}`);
         const deleted = await this.db
           .deleteFrom('flashcards')
           .where('id', '=', params.id)
@@ -168,7 +180,7 @@ export class FlashcardsController {
 
         if (!deleted) {
           this.logger.warn(
-            `Flashcard with id ${params.id} not found or access denied`,
+            `Flashcard not found or access denied: ${params.id}`,
           );
           throw new TsRestException(flashcardContract.deleteFlashcard, {
             status: HttpStatus.NOT_FOUND,
@@ -179,14 +191,16 @@ export class FlashcardsController {
           });
         }
 
-        this.logger.log(`Flashcard with id ${params.id} deleted successfully`);
-        return { status: HttpStatus.NO_CONTENT, body: null };
+        return {
+          status: HttpStatus.NO_CONTENT,
+          body: null,
+        };
       },
 
       getDueFlashcards: async ({ query }) => {
         const { topicId, limit, cursor } = query;
         this.logger.log(
-          `Fetching due flashcards for user ${user.id} with topicId ${topicId}, limit ${limit}, cursor ${cursor}`,
+          `Fetching due flashcards for user ${user.id} with topicId: ${topicId}, limit: ${limit}, cursor: ${cursor}`,
         );
 
         const builder = this.db
@@ -202,7 +216,6 @@ export class FlashcardsController {
 
         const nextCursor = due.length === limit ? due[due.length - 1].id : null;
 
-        this.logger.log(`Fetched ${due.length} due flashcards`);
         return {
           status: HttpStatus.OK,
           body: {
@@ -217,9 +230,6 @@ export class FlashcardsController {
         const { id } = params;
         const { rating, responseTimeMs } = body;
 
-        this.logger.log(
-          `Submitting review for flashcard with id ${id}, rating: ${rating}`,
-        );
         const card = await this.db
           .selectFrom('flashcards')
           .selectAll()
@@ -228,9 +238,7 @@ export class FlashcardsController {
           .executeTakeFirst();
 
         if (!card) {
-          this.logger.warn(
-            `Flashcard with id ${id} not found or access denied`,
-          );
+          this.logger.warn(`Review failed - not found: ${id}`);
           throw new TsRestException(flashcardContract.submitReview, {
             status: HttpStatus.NOT_FOUND,
             body: {
@@ -243,18 +251,16 @@ export class FlashcardsController {
         const lastReviewed = card.last_reviewed_at ?? now;
         const elapsedDays = (now.getTime() - lastReviewed.getTime()) / 86400000;
 
-        const defaultModel: Model = this.ebisu.createModel(elapsedDays);
-        const currentModel = card.ebisu_model ?? defaultModel;
-
-        const successes = rating === 'forgot' ? 0 : 1;
-        const total = 1;
-        const newModel = this.ebisu.update(
-          currentModel,
-          successes,
-          total,
+        const baseModel =
+          card.ebisu_model ?? this.ebisu.createModel(elapsedDays);
+        const success = rating === 'forgot' ? 0 : 1;
+        const updatedModel = this.ebisu.update(
+          baseModel,
+          success,
+          1,
           elapsedDays,
         );
-        const nextInterval = this.ebisu.getHalfLife(newModel, 0.5);
+        const nextInterval = this.ebisu.getHalfLife(updatedModel, 0.5);
 
         const updated = await this.db
           .updateTable('flashcards')
@@ -270,7 +276,7 @@ export class FlashcardsController {
             interval_days: nextInterval,
             last_reviewed_at: now,
             next_review_at: new Date(now.getTime() + nextInterval * 86400000),
-            ebisu_model: newModel,
+            ebisu_model: updatedModel,
           })
           .where('id', '=', id)
           .where('user_id', '=', user.id)
@@ -279,7 +285,7 @@ export class FlashcardsController {
 
         await this.clickhouse.insertReviewData(
           user.id,
-          card.word_id,
+          card.id,
           rating,
           card.ease_factor,
           card.interval_days,
@@ -288,25 +294,17 @@ export class FlashcardsController {
           now.toISOString(),
         );
 
-        await this.qdrant.updateVector(
-          user.id,
-          card.word_id,
+        const intensity = Math.min(responseTimeMs / 1000, 1);
+        const vector =
           rating === 'forgot'
-            ? [0.1 * Math.min(responseTimeMs / 1000, 1), 0.0, 0.0]
+            ? [0.1 * intensity, 0, 0]
             : rating === 'hard'
-              ? [
-                  0.5 * Math.min(responseTimeMs / 1000, 1),
-                  0.5 * Math.min(responseTimeMs / 1000, 1),
-                  0.5 * Math.min(responseTimeMs / 1000, 1),
-                ]
-              : [
-                  1.0 * Math.min(responseTimeMs / 1000, 1),
-                  1.0 * Math.min(responseTimeMs / 1000, 1),
-                  1.0 * Math.min(responseTimeMs / 1000, 1),
-                ],
-        );
+              ? [0.5 * intensity, 0.5 * intensity, 0.5 * intensity]
+              : [1 * intensity, 1 * intensity, 1 * intensity];
 
-        this.logger.log(`Review submitted for flashcard ${id}`);
+        await this.qdrant.updateVector(user.id, card.id, vector);
+
+        this.logger.log(`Review submitted: ${id}`);
         return { status: HttpStatus.OK, body: mapFlashcard(updated) };
       },
     });

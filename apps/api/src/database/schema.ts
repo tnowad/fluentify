@@ -40,7 +40,6 @@ export const TopicsTableSchema = z.object({
 export const FlashcardsTableSchema = z.object({
   id: z.string(),
   user_id: z.string(),
-  word_id: z.string(),
   topic_id: z.string().nullable(),
   status: z.enum(['new', 'learning', 'mastered']),
   next_review_at: z.date(),
@@ -49,12 +48,20 @@ export const FlashcardsTableSchema = z.object({
   interval_days: z.number(),
   repetitions: z.number(),
   ebisu_model: z.tuple([z.number(), z.number(), z.number()]).nullable(),
+
+  word: z.string(),
+  definition: z.string(),
+  image_url: z.string().url().nullable(),
+  part_of_speech: z.string().nullable(),
+  phonetic: z.string().nullable(),
+  examples: z.array(z.string()),
+  note: z.string().nullable(),
 });
 
 export const ReviewsTableSchema = z.object({
   id: z.string(),
   user_id: z.string(),
-  word_id: z.string(),
+  flashcard_id: z.string(),
   rating: z.enum(['forgot', 'hard', 'easy']),
   response_time_ms: z.number(),
   reviewed_at: z.date(),

@@ -7,7 +7,7 @@ export async function up(db: Kysely<any>): Promise<void> {
       col.primaryKey().defaultTo(sql`gen_random_uuid()`),
     )
     .addColumn('user_id', 'uuid', (col) => col.notNull())
-    .addColumn('word_id', 'uuid', (col) => col.notNull())
+    .addColumn('flashcard_id', 'uuid', (col) => col.notNull())
     .addColumn('rating', 'varchar(10)', (col) =>
       col.notNull().check(sql`rating IN ('forgot', 'hard', 'easy')`),
     )
@@ -23,9 +23,9 @@ export async function up(db: Kysely<any>): Promise<void> {
       (fk) => fk.onDelete('cascade'),
     )
     .addForeignKeyConstraint(
-      'reviews_word_id_fkey',
-      ['word_id'],
-      'words',
+      'reviews_flashcard_id_fkey',
+      ['flashcard_id'],
+      'flashcards',
       ['id'],
       (fk) => fk.onDelete('cascade'),
     )
