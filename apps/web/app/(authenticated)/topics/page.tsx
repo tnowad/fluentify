@@ -53,7 +53,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { getQueryClient } from "@/app/get-query-client";
 import { useDebounce } from "@uidotdev/usehooks";
-import { getMeQueryOptions } from "@/lib/queries";
+import { getMeQueryOptions } from "@/lib/queries/user.queries";
 
 type Topic = z.infer<typeof TopicSchema>;
 

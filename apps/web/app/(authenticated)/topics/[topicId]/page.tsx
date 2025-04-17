@@ -57,7 +57,7 @@ import {
   AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog";
 import { useQuery } from "@tanstack/react-query";
-import { getMeQueryOptions } from "@/lib/queries";
+import { getMeQueryOptions } from "@/lib/queries/user.queries";
 import { api } from "@/lib/api";
 import { HttpStatus } from "@workspace/contracts";
 

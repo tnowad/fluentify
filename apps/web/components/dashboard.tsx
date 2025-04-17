@@ -34,7 +34,7 @@ import {
   Flame,
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { getMeQueryOptions } from "@/lib/queries";
+import { getMeQueryOptions } from "@/lib/queries/user.queries";
 import { useRouter } from "next/navigation";
 
 const mainMenu = [
