@@ -5,7 +5,7 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { redirect } from "next/navigation";
-import { getMeQueryOptions } from "@/lib/queries";
+import { getMeQueryOptions } from "@/lib/queries/user.queries";
 
 export default async function Layout({
   children,

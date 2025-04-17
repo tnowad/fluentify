@@ -49,14 +49,149 @@ import {
 import { Badge } from "@workspace/ui/components/badge";
 import { z } from "zod";
 import { HttpStatus, TopicSchema } from "@workspace/contracts";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import {
+  infiniteQueryOptions,
+  useInfiniteQuery,
+  useQuery,
+} from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { getQueryClient } from "@/app/get-query-client";
 import { useDebounce } from "@uidotdev/usehooks";
 import { getMeQueryOptions } from "@/lib/queries/user.queries";
+import {
+  myTopicsInfiniteQuery,
+  publicTopicsInfiniteQuery,
+} from "@/lib/queries/topic.queries";
 
 type Topic = z.infer<typeof TopicSchema>;
 
+function TopicCard({
+  topic,
+  isCreatedByMe,
+}: {
+  topic: Topic;
+  isCreatedByMe: boolean;
+}) {
+  return (
+    <Card key={topic.id} className="h-full transition-all hover:shadow-md">
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <CardTitle>{topic.name}</CardTitle>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4"
+                >
+                  <circle cx="12" cy="5" r="1" />
+                  <circle cx="12" cy="12" r="1" />
+                  <circle cx="12" cy="19" r="1" />
+                </svg>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href={`/topics/${topic.id}`}>
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  Study
+                </Link>
+              </DropdownMenuItem>
+
+              {isCreatedByMe && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/topics/${topic.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Link>
+                </DropdownMenuItem>
+              )}
+
+              <DropdownMenuSeparator />
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <DropdownMenuItem
+                    onSelect={(e) => e.preventDefault()}
+                    className="text-red-600"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    {isCreatedByMe ? "Delete" : "Remove"}
+                  </DropdownMenuItem>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {isCreatedByMe
+                        ? "Delete topic?"
+                        : "Remove from your topics?"}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {isCreatedByMe
+                        ? "This will permanently delete this topic and all associated data."
+                        : "This will remove this topic from your saved topics."}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteTopic(topic.id)}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {isCreatedByMe ? "Delete" : "Remove"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <CardDescription className="line-clamp-2">
+          {topic.description}
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="pb-2">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {isCreatedByMe ? (
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                Created
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="bg-green-50 text-green-700">
+                Saved
+              </Badge>
+            )}
+            <span className="text-xs text-muted-foreground">
+              {formatDate(topic.createdAt)}
+            </span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 export default function TopicsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -71,23 +206,12 @@ export default function TopicsPage() {
     hasNextPage: hasNextMyTopicsPage,
     isLoading: isLoadingMyTopics,
     isError: isErrorMyTopics,
-  } = useInfiniteQuery({
-    queryKey: ["topics", "my", debouncedSearchQuery],
-    queryFn: async ({ pageParam }) => {
-      const response = await api.topic.listMyTopics({
-        query: {
-          search: searchQuery,
-          cursor: pageParam,
-        },
-      });
-      if (response.status !== HttpStatus.OK) {
-        throw new Error("Failed to fetch topics");
-      }
-      return response.body;
-    },
-    initialPageParam: "",
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
+  } = useInfiniteQuery(
+    myTopicsInfiniteQuery({
+      searchQuery: debouncedSearchQuery,
+      enabled: activeTab === "my-topics",
+    }),
+  );
 
   const {
     data: publicTopicsData,
@@ -95,23 +219,12 @@ export default function TopicsPage() {
     hasNextPage: hasNextPublicTopicsPage,
     isLoading: isLoadingPublicTopics,
     isError: isErrorPublicTopics,
-  } = useInfiniteQuery({
-    queryKey: ["topics", "public", debouncedSearchQuery],
-    queryFn: async ({ pageParam }) => {
-      const response = await api.topic.listPublicTopics({
-        query: {
-          search: searchQuery,
-          cursor: pageParam,
-        },
-      });
-      if (response.status !== HttpStatus.OK) {
-        throw new Error("Failed to fetch topics");
-      }
-      return response.body;
-    },
-    initialPageParam: "",
-    getNextPageParam: (lastPage) => lastPage.nextCursor,
-  });
+  } = useInfiniteQuery(
+    publicTopicsInfiniteQuery({
+      searchQuery: debouncedSearchQuery,
+      enabled: activeTab === "public-topics",
+    }),
+  );
 
   const myTopics = myTopicsData?.pages.flatMap((page) => page.items) || [];
   const publicTopics =
@@ -136,15 +249,6 @@ export default function TopicsPage() {
     } catch (error) {
       console.error("Error deleting topic:", error);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   return (
@@ -264,130 +368,13 @@ export default function TopicsPage() {
               </div>
             ) : myTopics.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {myTopics.map((topic) => {
-                  return (
-                    <Card
-                      key={topic.id}
-                      className="h-full transition-all hover:shadow-md"
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle>{topic.name}</CardTitle>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                              >
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  width="24"
-                                  height="24"
-                                  viewBox="0 0 24 24"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  className="h-4 w-4"
-                                >
-                                  <circle cx="12" cy="12" r="1" />
-                                  <circle cx="12" cy="5" r="1" />
-                                  <circle cx="12" cy="19" r="1" />
-                                </svg>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link href={`/topics/${topic.id}`}>
-                                  <BookOpen className="mr-2 h-4 w-4" />
-                                  Study
-                                </Link>
-                              </DropdownMenuItem>
-                              {isCreatedByMe(topic) && (
-                                <DropdownMenuItem asChild>
-                                  <Link href={`/topics/${topic.id}/edit`}>
-                                    <Edit className="mr-2 h-4 w-4" />
-                                    Edit
-                                  </Link>
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuSeparator />
-                              <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                  <DropdownMenuItem
-                                    onSelect={(e) => e.preventDefault()}
-                                    className="text-red-600"
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    {isCreatedByMe(topic) ? "Delete" : "Remove"}
-                                  </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                  <AlertDialogHeader>
-                                    <AlertDialogTitle>
-                                      {isCreatedByMe(topic)
-                                        ? "Delete topic?"
-                                        : "Remove from your topics?"}
-                                    </AlertDialogTitle>
-                                    <AlertDialogDescription>
-                                      {isCreatedByMe(topic)
-                                        ? "This will permanently delete this topic and all associated data."
-                                        : "This will remove this topic from your saved topics."}
-                                    </AlertDialogDescription>
-                                  </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel>
-                                      Cancel
-                                    </AlertDialogCancel>
-                                    <AlertDialogAction
-                                      onClick={() => deleteTopic(topic.id)}
-                                      className="bg-red-600 hover:bg-red-700"
-                                    >
-                                      {isCreatedByMe(topic)
-                                        ? "Delete"
-                                        : "Remove"}
-                                    </AlertDialogAction>
-                                  </AlertDialogFooter>
-                                </AlertDialogContent>
-                              </AlertDialog>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                        <CardDescription className="line-clamp-2">
-                          {topic.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pb-2">
-                        <div className="mb-3 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            {isCreatedByMe(topic) ? (
-                              <Badge
-                                variant="outline"
-                                className="bg-blue-50 text-blue-700"
-                              >
-                                Created
-                              </Badge>
-                            ) : (
-                              <Badge
-                                variant="outline"
-                                className="bg-green-50 text-green-700"
-                              >
-                                Saved
-                              </Badge>
-                            )}
-                            <span className="text-xs text-muted-foreground">
-                              {formatDate(topic.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
+                {myTopics.map((topic) => (
+                  <TopicCard
+                    topic={topic}
+                    isCreatedByMe={isCreatedByMe(topic)}
+                    key={topic.id}
+                  />
+                ))}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
@@ -466,33 +453,13 @@ export default function TopicsPage() {
               </div>
             ) : publicTopics.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {publicTopics.map((topic) => {
-                  return (
-                    <Card
-                      key={topic.id}
-                      className="h-full transition-all hover:shadow-md"
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center gap-2">
-                            <CardTitle>{topic.name}</CardTitle>
-                          </div>
-                        </div>
-                        <CardDescription className="line-clamp-2">
-                          {topic.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pb-2">
-                        <div className="mb-3 flex items-center justify-between"></div>
-                      </CardContent>
-                      <CardFooter className="flex items-center justify-between pt-2">
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(topic.createdAt)}
-                        </span>
-                      </CardFooter>
-                    </Card>
-                  );
-                })}
+                {publicTopics.map((topic) => (
+                  <TopicCard
+                    topic={topic}
+                    isCreatedByMe={isCreatedByMe(topic)}
+                    key={topic.id}
+                  />
+                ))}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
