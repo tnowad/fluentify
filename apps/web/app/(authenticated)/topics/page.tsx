@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   BookOpen,
   Edit,
@@ -56,24 +56,36 @@ import {
 } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { getQueryClient } from "@/app/get-query-client";
-import { useDebounce } from "@uidotdev/usehooks";
+import { useDebounce, useIntersectionObserver } from "@uidotdev/usehooks";
 import { getMeQueryOptions } from "@/lib/queries/user.queries";
 import {
   myTopicsInfiniteQuery,
   publicTopicsInfiniteQuery,
 } from "@/lib/queries/topic.queries";
+import { toast } from "sonner";
 
 type Topic = z.infer<typeof TopicSchema>;
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
 
 function TopicCard({
   topic,
   isCreatedByMe,
+  onDelete,
 }: {
   topic: Topic;
   isCreatedByMe: boolean;
+  onDelete: (id: string) => Promise<void>;
 }) {
   return (
-    <Card key={topic.id} className="h-full transition-all hover:shadow-md">
+    <Card className="h-full transition-all hover:shadow-md">
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-2">
@@ -145,7 +157,7 @@ function TopicCard({
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
-                      onClick={() => deleteTopic(topic.id)}
+                      onClick={() => onDelete(topic.id)}
                       className="bg-red-600 hover:bg-red-700"
                     >
                       {isCreatedByMe ? "Delete" : "Remove"}
@@ -184,14 +196,55 @@ function TopicCard({
   );
 }
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-};
+// Empty State Component
+function EmptyState({
+  icon: Icon,
+  title,
+  description,
+  actions,
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  actions: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+      <Icon className="mb-2 h-10 w-10 text-muted-foreground" />
+      <h3 className="text-lg font-medium">{title}</h3>
+      <p className="text-sm text-muted-foreground">{description}</p>
+      <div className="mt-4">{actions}</div>
+    </div>
+  );
+}
+
+// Loading State Component
+function LoadingState() {
+  return (
+    <div className="flex flex-col items-center justify-center py-12">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      <p className="mt-4 text-sm text-muted-foreground">Loading topics...</p>
+    </div>
+  );
+}
+
+// Error State Component
+function ErrorState({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
+      <X className="mb-2 h-10 w-10 text-red-500" />
+      <h3 className="text-lg font-medium">Failed to load topics</h3>
+      <p className="text-sm text-muted-foreground">
+        There was an error loading your topics. Please try again.
+      </p>
+      <Button variant="outline" className="mt-4" onClick={onRetry}>
+        Retry
+      </Button>
+    </div>
+  );
+}
+
+// Main Component
 export default function TopicsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -200,12 +253,14 @@ export default function TopicsPage() {
   );
   const { data: user } = useQuery(getMeQueryOptions);
 
+  // My Topics Query
   const {
     data: myTopicsData,
     fetchNextPage: fetchNextMyTopicsPage,
     hasNextPage: hasNextMyTopicsPage,
     isLoading: isLoadingMyTopics,
     isError: isErrorMyTopics,
+    refetch: refetchMyTopics,
   } = useInfiniteQuery(
     myTopicsInfiniteQuery({
       searchQuery: debouncedSearchQuery,
@@ -213,12 +268,14 @@ export default function TopicsPage() {
     }),
   );
 
+  // Public Topics Query
   const {
     data: publicTopicsData,
     fetchNextPage: fetchNextPublicTopicsPage,
     hasNextPage: hasNextPublicTopicsPage,
     isLoading: isLoadingPublicTopics,
     isError: isErrorPublicTopics,
+    refetch: refetchPublicTopics,
   } = useInfiniteQuery(
     publicTopicsInfiniteQuery({
       searchQuery: debouncedSearchQuery,
@@ -226,10 +283,46 @@ export default function TopicsPage() {
     }),
   );
 
+  // Intersection Observer for Infinite Scrolling
+  const [ref, entry] = useIntersectionObserver<HTMLDivElement>({
+    rootMargin: "100px",
+    threshold: 0,
+  });
+
+  // Handle Infinite Scrolling
+  useEffect(() => {
+    if (!entry?.isIntersecting) return;
+
+    if (
+      activeTab === "my-topics" &&
+      hasNextMyTopicsPage &&
+      !isLoadingMyTopics
+    ) {
+      fetchNextMyTopicsPage();
+    } else if (
+      activeTab === "public-topics" &&
+      hasNextPublicTopicsPage &&
+      !isLoadingPublicTopics
+    ) {
+      fetchNextPublicTopicsPage();
+    }
+  }, [
+    entry?.isIntersecting,
+    activeTab,
+    hasNextMyTopicsPage,
+    fetchNextMyTopicsPage,
+    hasNextPublicTopicsPage,
+    fetchNextPublicTopicsPage,
+    isLoadingMyTopics,
+    isLoadingPublicTopics,
+  ]);
+
+  // Process Data
   const myTopics = myTopicsData?.pages.flatMap((page) => page.items) || [];
   const publicTopics =
     publicTopicsData?.pages.flatMap((page) => page.items) || [];
 
+  // Check if topic is created by current user
   const isCreatedByMe = useCallback(
     (topic: Topic) => {
       return topic.createdBy === user?.id;
@@ -237,17 +330,27 @@ export default function TopicsPage() {
     [user?.id],
   );
 
+  // Delete Topic Handler
   const deleteTopic = async (id: string) => {
     try {
       const response = await api.topic.deleteTopic({
         params: { id },
       });
-      if (response.status !== HttpStatus.OK) {
+
+      if (response.status !== HttpStatus.NO_CONTENT) {
         throw new Error("Failed to delete topic");
       }
-      getQueryClient().invalidateQueries({ queryKey: ["list-my-topics"] });
+
+      toast.success("Topic deleted", {
+        description: "The topic has been successfully deleted.",
+      });
+
+      getQueryClient().invalidateQueries({ queryKey: ["topics"] });
     } catch (error) {
       console.error("Error deleting topic:", error);
+      toast("Error", {
+        description: "Failed to delete topic. Please try again.",
+      });
     }
   };
 
@@ -349,84 +452,63 @@ export default function TopicsPage() {
           {/* My Topics Content */}
           <TabsContent value="my-topics" className="mt-0">
             {isLoadingMyTopics && myTopics.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Loading topics...
-                </p>
-              </div>
+              <LoadingState />
             ) : isErrorMyTopics ? (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                <X className="mb-2 h-10 w-10 text-red-500" />
-                <h3 className="text-lg font-medium">Failed to load topics</h3>
-                <p className="text-sm text-muted-foreground">
-                  There was an error loading your topics. Please try again.
-                </p>
-                <Button variant="outline" className="mt-4">
-                  Retry
-                </Button>
-              </div>
+              <ErrorState onRetry={() => refetchMyTopics()} />
             ) : myTopics.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {myTopics.map((topic) => (
                   <TopicCard
+                    key={topic.id}
                     topic={topic}
                     isCreatedByMe={isCreatedByMe(topic)}
-                    key={topic.id}
+                    onDelete={deleteTopic}
                   />
                 ))}
+                <div ref={ref} className="h-4 w-full" />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                <BookOpen className="mb-2 h-10 w-10 text-muted-foreground" />
-                <h3 className="text-lg font-medium">No topics found</h3>
-                <p className="text-sm text-muted-foreground">
-                  {searchQuery
+              <EmptyState
+                icon={BookOpen}
+                title="No topics found"
+                description={
+                  searchQuery
                     ? "Try adjusting your search query"
-                    : "You haven't created or saved any topics yet"}
-                </p>
-                {searchQuery ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => setSearchQuery("")}
-                    className="mt-4"
-                  >
-                    Clear Search
-                  </Button>
-                ) : (
-                  <div className="mt-4 flex gap-2">
-                    <Button asChild>
-                      <Link href="/topics/create">
-                        <Plus className="mr-2 h-4 w-4" />
-                        Create Topic
-                      </Link>
-                    </Button>
+                    : "You haven't created or saved any topics yet"
+                }
+                actions={
+                  searchQuery ? (
                     <Button
                       variant="outline"
-                      onClick={() => setActiveTab("public-topics")}
+                      onClick={() => setSearchQuery("")}
                     >
-                      Browse Public Topics
+                      Clear Search
                     </Button>
-                  </div>
-                )}
-              </div>
-            )}
-            {hasNextMyTopicsPage && (
-              <div className="mt-6 flex justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => fetchNextMyTopicsPage()}
-                  disabled={isLoadingMyTopics}
-                >
-                  {isLoadingMyTopics ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                      Loading...
-                    </>
                   ) : (
-                    "Load More"
-                  )}
-                </Button>
+                    <div className="flex gap-2">
+                      <Button asChild>
+                        <Link href="/topics/create">
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create Topic
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => setActiveTab("public-topics")}
+                      >
+                        Browse Public Topics
+                      </Button>
+                    </div>
+                  )
+                }
+              />
+            )}
+            {hasNextMyTopicsPage && isLoadingMyTopics && (
+              <div className="mt-6 flex justify-center">
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                  <span>Loading more...</span>
+                </div>
               </div>
             )}
           </TabsContent>
@@ -434,69 +516,48 @@ export default function TopicsPage() {
           {/* Public Topics Content */}
           <TabsContent value="public-topics" className="mt-0">
             {isLoadingPublicTopics && publicTopics.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Loading topics...
-                </p>
-              </div>
+              <LoadingState />
             ) : isErrorPublicTopics ? (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                <X className="mb-2 h-10 w-10 text-red-500" />
-                <h3 className="text-lg font-medium">Failed to load topics</h3>
-                <p className="text-sm text-muted-foreground">
-                  There was an error loading public topics. Please try again.
-                </p>
-                <Button variant="outline" className="mt-4">
-                  Retry
-                </Button>
-              </div>
+              <ErrorState onRetry={() => refetchPublicTopics()} />
             ) : publicTopics.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {publicTopics.map((topic) => (
                   <TopicCard
+                    key={topic.id}
                     topic={topic}
                     isCreatedByMe={isCreatedByMe(topic)}
-                    key={topic.id}
+                    onDelete={deleteTopic}
                   />
                 ))}
+                <div ref={ref} className="h-4 w-full" />
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
-                <Users className="mb-2 h-10 w-10 text-muted-foreground" />
-                <h3 className="text-lg font-medium">No public topics found</h3>
-                <p className="text-sm text-muted-foreground">
-                  {searchQuery
+              <EmptyState
+                icon={Users}
+                title="No public topics found"
+                description={
+                  searchQuery
                     ? "Try adjusting your search query"
-                    : "There are no public topics available"}
-                </p>
-                {searchQuery && (
-                  <Button
-                    variant="outline"
-                    onClick={() => setSearchQuery("")}
-                    className="mt-4"
-                  >
-                    Clear Search
-                  </Button>
-                )}
-              </div>
+                    : "There are no public topics available"
+                }
+                actions={
+                  searchQuery && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      Clear Search
+                    </Button>
+                  )
+                }
+              />
             )}
-            {hasNextPublicTopicsPage && (
+            {hasNextPublicTopicsPage && isLoadingPublicTopics && (
               <div className="mt-6 flex justify-center">
-                <Button
-                  variant="outline"
-                  onClick={() => fetchNextPublicTopicsPage()}
-                  disabled={isLoadingPublicTopics}
-                >
-                  {isLoadingPublicTopics ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                      Loading...
-                    </>
-                  ) : (
-                    "Load More"
-                  )}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                  <span>Loading more...</span>
+                </div>
               </div>
             )}
           </TabsContent>

@@ -38,6 +38,7 @@ import {
   useSuspenseQuery,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { topicQuery } from "@/lib/queries/topic.queries";
 
 const formSchema = UpdateTopicRequest;
 
@@ -52,21 +53,7 @@ export default function EditTopicPage() {
     data: topic,
     isLoading,
     error,
-  } = useSuspenseQuery({
-    queryKey: ["topic", topicId],
-    queryFn: async () => {
-      const response = await api.topic.getTopicById({
-        params: {
-          id: topicId,
-        },
-      });
-      if (response.status !== HttpStatus.OK) {
-        throw new Error("Failed to fetch topic");
-      }
-      return response;
-    },
-    select: (data) => data.body,
-  });
+  } = useSuspenseQuery(topicQuery({ topicId }));
 
   const form = useForm({
     resolver: zodResolver(formSchema),

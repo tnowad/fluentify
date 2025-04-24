@@ -1,5 +1,5 @@
 import { HttpStatus } from "@workspace/contracts";
-import { infiniteQueryOptions } from "@tanstack/react-query";
+import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 export function myTopicsInfiniteQuery({
@@ -52,6 +52,30 @@ export function publicTopicsInfiniteQuery({
     },
     initialPageParam: "",
     getNextPageParam: (lastPage) => lastPage.nextCursor,
+    enabled,
+  });
+}
+
+export function topicQuery({
+  topicId,
+  enabled = true,
+}: {
+  topicId: string;
+  enabled?: boolean;
+}) {
+  return queryOptions({
+    queryKey: ["topic", topicId],
+    queryFn: async () => {
+      const response = await api.topic.getTopicById({
+        params: {
+          id: topicId,
+        },
+      });
+      if (response.status !== HttpStatus.OK) {
+        throw new Error("Failed to fetch topic");
+      }
+      return response.body;
+    },
     enabled,
   });
 }

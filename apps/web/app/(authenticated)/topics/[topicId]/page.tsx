@@ -60,6 +60,7 @@ import { useQuery } from "@tanstack/react-query";
 import { getMeQueryOptions } from "@/lib/queries/user.queries";
 import { api } from "@/lib/api";
 import { HttpStatus } from "@workspace/contracts";
+import { topicQuery } from "@/lib/queries/topic.queries";
 
 // Word schema
 const WordSchema = z.object({
@@ -81,26 +82,11 @@ export default function TopicDetailPage() {
   const { topicId } = useParams<{ topicId: string }>();
   const router = useRouter();
   const { data: user } = useQuery(getMeQueryOptions);
-  const { data: topic, isLoading } = useQuery({
-    queryKey: ["topic", topicId],
-    queryFn: async () => {
-      const response = await api.topic.getTopicById({
-        params: {
-          id: topicId,
-        },
-      });
-      if (response.status !== HttpStatus.OK) {
-        throw new Error("Failed to fetch topic");
-      }
-      return response;
-    },
-    enabled: !!topicId,
-    select: (data) => data.body,
-  });
+
+  const { data: topic, isLoading } = useQuery(topicQuery({ topicId }));
 
   const [words] = useState<Word[]>([]);
 
-  // State for filtering and sorting
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [difficultyFilter, setDifficultyFilter] = useState("all");
