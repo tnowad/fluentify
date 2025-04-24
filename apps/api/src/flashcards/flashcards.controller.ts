@@ -4,7 +4,7 @@ import { flashcardContract, FlashcardSchema } from '@workspace/contracts';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DatabaseService } from '../database/database.service';
 import { CurrentUser, UserPayload } from '../auth/current-user.decorator';
-import { randomUUID } from 'crypto';
+import { uuidv7 } from 'uuidv7';
 import { FlashcardsTable, FlashcardsTableSchema } from '../database/schema';
 import { z } from 'zod';
 import { EbisuService } from '../ebisu/ebisu.service';
@@ -112,7 +112,7 @@ export class FlashcardsController {
 
       createFlashcard: async ({ body }) => {
         const newFlashcard = {
-          id: randomUUID(),
+          id: uuidv7(),
           user_id: user.id,
           topic_id: body.topicId ?? null,
           status: 'new' as const,

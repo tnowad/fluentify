@@ -12,7 +12,7 @@ import { compare, hash } from 'bcryptjs';
 import { DatabaseService } from '../database/database.service';
 import { CurrentUser, UserPayload } from './current-user.decorator';
 import { JwtAuthGuard } from './jwt-auth.guard';
-import { randomUUID } from 'crypto';
+import { uuidv7 } from 'uuidv7';
 import { sql } from 'kysely';
 
 type JwtPayload = {
@@ -58,7 +58,7 @@ export class AuthController {
         const user = await this.db
           .insertInto('users')
           .values({
-            id: randomUUID(),
+            id: uuidv7(),
             name,
             email,
             hashed_password: hashedPassword,

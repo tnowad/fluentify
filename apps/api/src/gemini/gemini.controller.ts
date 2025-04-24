@@ -10,7 +10,8 @@ import {
   HowDoISayResponse,
 } from '@workspace/contracts';
 import { buildHowDoISayPrompt } from './prompts.inputs';
-import { randomUUID, createHash } from 'crypto';
+import { createHash } from 'crypto';
+import { uuidv7 } from 'uuidv7';
 
 function hashInput(input: unknown): string {
   const json = JSON.stringify(input);
@@ -67,7 +68,7 @@ export class GeminiController {
           await this.db
             .insertInto('prompt_histories')
             .values({
-              id: randomUUID(),
+              id: uuidv7(),
               user_id: user.id,
               type: 'howDoISay',
               input: body,

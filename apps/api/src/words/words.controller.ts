@@ -5,7 +5,7 @@ import { tsRestHandler, TsRestHandler } from '@ts-rest/nest';
 import axios from 'axios';
 import { TsRestResponseError } from '@ts-rest/core';
 import { sql } from 'kysely';
-import { randomUUID } from 'crypto';
+import { uuidv7 } from 'uuidv7';
 
 export type DictionaryApiResponse = {
   word: string;
@@ -112,7 +112,7 @@ export class WordsController {
           const inserted = await this.db
             .insertInto('words')
             .values({
-              id: randomUUID(),
+              id: uuidv7(),
               word,
               main_phonetic,
               phonetics: sql`${JSON.stringify(phonetics)}`,

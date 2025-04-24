@@ -10,7 +10,7 @@ import { topicContract } from '@workspace/contracts';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { DatabaseService } from '../database/database.service';
 import { CurrentUser, UserPayload } from '../auth/current-user.decorator';
-import { randomUUID } from 'crypto';
+import { uuidv7 } from 'uuidv7';
 import { sql } from 'kysely';
 
 @Controller()
@@ -30,7 +30,7 @@ export class TopicsController {
         const topic = await this.db
           .insertInto('topics')
           .values({
-            id: randomUUID(),
+            id: uuidv7(),
             name: body.name,
             description: body.description,
             is_public: body.isPublic,
@@ -143,23 +143,21 @@ export class TopicsController {
 
       listMyTopics: async ({ query }) => {
         const { limit, cursor, search } = query;
-        const builder = this.db
+
+        let builder = this.db
           .selectFrom('topics')
           .selectAll()
           .where('created_by', '=', user.id);
 
         if (search) {
-          builder.where('name', 'ilike', `%${search}%`);
+          builder = builder.where('name', 'like', `%${search}%`);
         }
 
         if (cursor) {
-          builder.where('id', '<', cursor);
+          builder = builder.where('id', '>', cursor);
         }
 
-        const items = await builder
-          .orderBy('id', 'desc')
-          .limit(limit)
-          .execute();
+        const items = await builder.orderBy('id', 'asc').limit(limit).execute();
 
         const nextCursor =
           items.length === limit ? items[items.length - 1].id : null;
@@ -182,17 +180,17 @@ export class TopicsController {
 
       listPublicTopics: async ({ query }) => {
         const { limit, cursor, search } = query;
-        const builder = this.db
+        let builder = this.db
           .selectFrom('topics')
           .selectAll()
           .where('is_public', '=', true);
 
         if (search) {
-          builder.where('name', 'ilike', `%${search}%`);
+          builder = builder.where('name', 'ilike', `%${search}%`);
         }
 
         if (cursor) {
-          builder.where('id', '<', cursor);
+          builder = builder.where('id', '<', cursor);
         }
 
         const items = await builder
@@ -281,7 +279,7 @@ export class TopicsController {
         const clonedTopic = await this.db
           .insertInto('topics')
           .values({
-            id: randomUUID(),
+            id: uuidv7(),
             name: `${original.name} (Clone)`,
             description: original.description,
             is_public: false,
@@ -302,7 +300,7 @@ export class TopicsController {
           await this.db
             .insertInto('flashcards')
             .values({
-              id: randomUUID(),
+              id: uuidv7(),
               user_id: user.id,
               topic_id: clonedTopic.id,
               status: 'new',

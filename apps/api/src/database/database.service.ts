@@ -13,7 +13,7 @@ export class DatabaseService extends Kysely<DB> implements OnModuleDestroy {
     });
     const dialect = new PostgresDialect({ pool });
 
-    super({ dialect });
+    super({ dialect, log: ['query', 'error'] });
     this.pool = pool;
   }
 
