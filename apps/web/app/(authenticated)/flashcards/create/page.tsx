@@ -5,7 +5,7 @@ import type React from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { ArrowLeft, Check, Loader2, Plus, X } from "lucide-react";
 import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -40,6 +40,8 @@ import {
 import { api } from "@/lib/api";
 import { CreateFlashcardRequest, HttpStatus } from "@workspace/contracts";
 import { toast } from "sonner";
+import { isDev } from "@/lib/env";
+import { z } from "zod";
 
 // Parts of speech options
 const partsOfSpeech = [
@@ -53,21 +55,20 @@ const partsOfSpeech = [
   { value: "interjection", label: "Interjection" },
 ];
 
-const formSchema = CreateFlashcardRequest;
+const formSchema = CreateFlashcardRequest.extend({
+  exampleInput: z.string().optional(),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
 export default function CreateFlashcardPage() {
   const router = useRouter();
-  const [examples, setExamples] = useState<string[]>([]);
-  const [exampleInput, setExampleInput] = useState("");
 
-  // Fetch topics for the dropdown
   const { data: topicsData, isLoading: isLoadingTopics } = useQuery({
     queryKey: ["topics", "my"],
     queryFn: async () => {
       const response = await api.topic.listMyTopics({
-        query: { limit: "100" },
+        query: { limit: 100 },
       });
       if (response.status !== HttpStatus.OK) {
         throw new Error("Failed to fetch topics");
@@ -81,18 +82,29 @@ export default function CreateFlashcardPage() {
   // Initialize form
   const form = useForm({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      word: "",
-      definition: "",
-      imageUrl: null,
-      partOfSpeech: "",
-      phonetic: "",
-      examples: [],
-      note: "",
-    },
+    defaultValues: isDev
+      ? {
+          word: "Facilitate",
+          definition: "To make a process easier or more achievable.",
+          imageUrl: "https://example.com/image.jpg",
+          partOfSpeech: "verb",
+          phonetic: "/fəˈsɪlɪteɪt/",
+          examples: ["The teacher facilitated the discussion."],
+          exampleInput: "I facilitated a workshop on teamwork.",
+          note: "Mnemonic: 'Facilitate' sounds like 'facilitate'.",
+        }
+      : {
+          word: "",
+          definition: "",
+          imageUrl: null,
+          partOfSpeech: "",
+          phonetic: "",
+          exampleInput: "",
+          examples: [],
+          note: "",
+        },
   });
 
-  // Create flashcard mutation
   const createFlashcard = useMutation({
     mutationFn: async (data: FormValues) => {
       const response = await api.flashcard.createFlashcard({
@@ -125,37 +137,12 @@ export default function CreateFlashcardPage() {
     },
   });
 
-  // Handle form submission
   const onSubmit = (values: FormValues) => {
-    // Add examples to the values
-    const flashcardData = {
-      ...values,
-      examples: examples,
-    };
-
+    const { exampleInput, ...flashcardData } = values;
     createFlashcard.mutate(flashcardData);
   };
 
-  // Handle adding an example
-  const handleAddExample = () => {
-    if (exampleInput.trim() && examples.length < 10) {
-      setExamples([...examples, exampleInput.trim()]);
-      setExampleInput("");
-    }
-  };
-
-  // Handle removing an example
-  const handleRemoveExample = (index: number) => {
-    setExamples(examples.filter((_, i) => i !== index));
-  };
-
-  // Handle example input keydown (add on Enter)
-  const handleExampleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAddExample();
-    }
-  };
+  const examples = form.watch("examples");
 
   return (
     <div className="min-h-screen bg-background">
@@ -269,56 +256,80 @@ export default function CreateFlashcardPage() {
                   )}
                 />
 
-                {/* Examples section */}
-                <div className="space-y-2">
-                  <FormLabel htmlFor="examples">Example Sentences</FormLabel>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="examples"
-                      placeholder="Enter an example sentence using this word..."
-                      value={exampleInput}
-                      onChange={(e) => setExampleInput(e.target.value)}
-                      onKeyDown={handleExampleKeyDown}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      onClick={handleAddExample}
-                      disabled={!exampleInput.trim() || examples.length >= 10}
-                    >
-                      <Plus className="h-4 w-4" />
-                      <span className="sr-only">Add example</span>
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Press Enter to add. Maximum 10 examples. {examples.length}
-                    /10 added.
-                  </p>
-
-                  {/* Display added examples */}
-                  {examples.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      {examples.map((example, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-md border p-2"
-                        >
-                          <p className="text-sm">{example}</p>
+                <FormField
+                  control={form.control}
+                  name="exampleInput"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel htmlFor="examples">
+                        Example Sentences
+                      </FormLabel>
+                      <FormControl>
+                        <div className="flex items-center gap-2">
+                          <Input
+                            id="examples"
+                            placeholder="Enter an example sentence using this word..."
+                            {...field}
+                            value={field.value || ""}
+                          />
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="outline"
                             size="icon"
-                            onClick={() => handleRemoveExample(index)}
+                            onClick={() => {
+                              if (form.getValues("examples").length >= 10) {
+                                toast.error("Maximum 10 examples allowed");
+                                return;
+                              }
+                              if (field.value) {
+                                form.setValue(
+                                  "examples",
+                                  [...form.getValues("examples"), field.value],
+                                  { shouldValidate: true },
+                                );
+                              }
+                              field.onChange("");
+                            }}
                           >
-                            <X className="h-4 w-4" />
-                            <span className="sr-only">Remove example</span>
+                            <Plus className="h-4 w-4" />
+                            <span className="sr-only">Add example</span>
                           </Button>
                         </div>
-                      ))}
-                    </div>
+                      </FormControl>
+                      <FormDescription>
+                        Press Enter to add. Maximum 10 examples. /10 added.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </div>
+                />
+
+                {examples?.length > 0 && (
+                  <div className="mt-3 space-y-2">
+                    {examples.map((example, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-md border p-2"
+                      >
+                        <p className="text-sm">{example}</p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            const updatedExamples = examples.filter(
+                              (_, i) => i !== index,
+                            );
+                            form.setValue("examples", updatedExamples);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                          <span className="sr-only">Remove example</span>
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 <FormField
                   control={form.control}

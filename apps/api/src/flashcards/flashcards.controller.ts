@@ -11,6 +11,7 @@ import { EbisuService } from '../ebisu/ebisu.service';
 import { ClickhouseService } from '../clickhouse/clickhouse.service';
 import { QdrantService } from '../qdrant/qdrant.service';
 import { Model } from 'ebisu-js/interfaces';
+import { sql } from 'kysely';
 
 function mapFlashcard(
   input: z.infer<typeof FlashcardsTableSchema>,
@@ -111,6 +112,12 @@ export class FlashcardsController {
       },
 
       createFlashcard: async ({ body }) => {
+        this.logger.log(
+          `Creating flashcard: ${body.word}, user: ${user.id}, topicId: ${body.topicId}`,
+        );
+        this.logger.debug(`Flashcard body: ${JSON.stringify(body)}`);
+
+        const examples = sql<string[]>`${JSON.stringify(body.examples ?? [])}`;
         const newFlashcard = {
           id: uuidv7(),
           user_id: user.id,
@@ -121,7 +128,7 @@ export class FlashcardsController {
           repetitions: 0,
           next_review_at: new Date(),
           last_reviewed_at: null,
-          examples: body.examples ?? [],
+          examples,
           word: body.word,
           definition: body.definition,
           image_url: body.imageUrl ?? null,
@@ -135,6 +142,9 @@ export class FlashcardsController {
           .values(newFlashcard)
           .returningAll()
           .executeTakeFirstOrThrow();
+
+        this.logger.log(`Flashcard created: ${created.id}`);
+        this.logger.debug(`Created flashcard: ${JSON.stringify(created)}`);
 
         return {
           status: HttpStatus.CREATED,
